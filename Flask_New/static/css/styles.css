@@ -1,0 +1,177 @@
+/* Style for the Page Title */
+.page-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(to right, #1abc9c, #2ecc71);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Sidebar styling */
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    height: 100vh;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    overflow-y: auto;
+}
+
+/* Main content area */
+.main {
+    margin-left: 270px; /* Adjusted to account for sidebar width and spacing */
+    padding: 20px;
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+/* Styling for buttons inside the sidebar */
+#ncbtn {
+    width: 100%;
+    height: 75px;
+    background-color: #007bff;
+    color: white;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+#ncbtn i {
+    margin-right: 10px;
+    font-size: 20px;
+    vertical-align: middle;
+}
+
+/* Hover effect for the new chat button */
+#ncbtn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for chat links */
+.chatlink {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.chatlink a {
+    text-decoration: none;
+    color: #007bff;
+    flex-grow: 1;
+}
+
+.chatlink a:hover {
+    text-decoration: underline;
+}
+
+.deletebtn a {
+    color: #dc3545;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.deletebtn a:hover {
+    color: #c82333;
+}
+
+/* Style for messages */
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.message img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.message p {
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 80%;
+}
+
+/* Style for user and assistant messages */
+.message.user p {
+    background-color: #d1ecf1;
+}
+
+.message.assistant p {
+    background-color: #f8d7da;
+}
+
+/* Style for the chat input form */
+#chatinput {
+    position: fixed;
+    bottom: 0;
+    left: 270px; /* Adjust according to sidebar width */
+    width: calc(100% - 270px);
+    padding: 10px;
+    background-color: #fff;
+    border-top: 1px solid #e9ecef;
+}
+
+#chatinput form {
+    display: flex;
+    align-items: center;
+}
+
+#chatinput input[type="text"] {
+    width: calc(100% - 70px); /* Adjust according to button width */
+    height: 50px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ced4da;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+}
+
+#chatinput button {
+    width: 70px;
+    height: 50px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+}
+
+#chatinput button:hover {
+    background-color: #0056b3;
+}
+
+/* Style for loading spinner */
+.request-indicator {
+    display: none; /* Hide by default */
+}
+
+.request-indicator svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Show the indicator when the form is submitting */
+#chatinput form.htmx-request .request-indicator {
+    display: inline-block;
+}
+
