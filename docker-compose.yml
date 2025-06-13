@@ -1,21 +1,33 @@
 services:
-  flask:
-    build: ./.devcontainer
+  rag-api:
+    build: ./rag-api
     ports:
-      - "1337:1337"
+      - "8000:8000"
     volumes:
-      - .:/code
-    working_dir: /code
-    command: python3 ./Flask_New/app.py
+      - ./rag-api:/app
+      - ./secrets.json:/app/secrets.json
     depends_on:
       milvus:
         condition: service_healthy
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MILVUS_HOST=milvus
+      - MILVUS_PORT=19530
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1337/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  rag-ui:
+    build: ./rag-ui
+    ports:
+      - "3000:80"
+    depends_on:
+      - rag-api
+    volumes:
+      - ./rag-ui:/app
 
   milvus:
     image: "milvusdb/milvus:v2.3.9"
@@ -38,5 +50,5 @@ services:
       retries: 5
       start_period: 90s
     volumes:
-      - ./MilvusVolumes/milvus:/var/lib/milvus:rw
-      - ./MilvusVolumes/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:rw
+      - ./milvus_db/milvus:/var/lib/milvus:rw
+      - ./milvus_db/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:rw
