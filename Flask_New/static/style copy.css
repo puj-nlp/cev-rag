@@ -1,0 +1,174 @@
+/* Основной блок контента */
+.main {
+    margin: auto; 
+    max-width: 55%; 
+    margin-bottom: 25px;
+    padding-left: 0%;
+    border-radius: 8px; /* Slightly rounded corners */
+}
+
+/* Стилизация боковой панели */
+.sidebar {
+    margin: 0;
+    padding: 0;
+    width: 20%;
+    background-color: #292929; /* Slightly darker gray */
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-family: "Roboto", sans-serif; 
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* Стили для ссылок в боковой панели */
+.sidebar .chatlink {
+    display: block;
+    padding: 16px; 
+    margin-bottom: 1px;
+    margin-top: 5px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+.sidebar .chatlink a {
+    text-decoration: none;
+    color: #f1f1f1; /* Lighter text for better contrast */
+}
+
+.sidebar .chatlink:hover {
+    background-color: #404040; /* Darker hover color for a modern feel */
+}
+
+/* Скрытие кнопки удаления по умолчанию */
+.sidebar .chatlink .deletebtn {
+    display: none; 
+}
+
+/* Отображение кнопки удаления при наведении */
+.sidebar .chatlink:hover .deletebtn {
+    display: inline; 
+    color: #d9534f; /* Subtle red color */
+}
+
+/* Стилизация элемента ввода чата */
+#chatinput {
+    display: flex; 
+    flex-direction: row;
+    flex-wrap: nowrap; 
+    justify-content: space-evenly; 
+}
+
+/* Стилизация текстового поля ввода */
+#chatinput input {
+    flex: 1; 
+    display: block;
+    min-width: 0;
+    height: 50px;
+    margin-right: 3%; 
+    border-radius: 5px;
+    border: 1px solid #ced4da; /* Light gray border */
+    padding: 0 10px; /* Add some padding within the input field */
+}
+
+#aidescription {
+    padding: 10px;
+    background-color: #f8f8f8; /* Softer gray background */
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Стилизация сообщений в чате */
+.message {
+    border: 2px solid;
+    border-radius: 8px; /* More pronounced rounded corners */
+    padding: 10px; 
+    margin: 8px 0; /* Increased margin for better separation */
+    font-family: "Roboto", sans-serif; 
+    font-weight: 400; 
+    font-style: normal;
+    box-shadow: 0px 2px 4px rgba(0,0,0,0.05); /* Subtle shadow for messages */
+}
+
+/* Стилизация изображений в сообщениях */
+.message img {
+    max-width: 64px; 
+    width: 100%;
+    border-radius: 50%;
+}
+
+/* Очистка потока после каждого сообщения */
+.message::after {
+    content: "";
+    clear: both;
+    display: table; 
+}
+
+/* Стилизация сообщений от пользователя */
+.message.user {
+    border-color: #d1ecf1; /* Light blue border */
+    background-color: #e9f6fa; /* Very light blue background */
+}
+
+/* Стилизация сообщений от ассистента */
+.message.assistant {
+    border-color: #e2e6ea; /* Light gray border */
+    background-color: #f8f9fa; /* Very light gray background */
+}
+
+/* Расположение изображений в сообщениях пользователя */
+.message.user img {
+    float: left; 
+    margin-right: 20px; 
+}
+
+/* Расположение изображений в сообщениях ассистента */
+.message.assistant img {
+    float: right; 
+    margin-left: 20px;
+}
+
+/* Индикаторы загрузки при запросах */
+.request-indicator {
+    margin: auto;
+    display: none; 
+    text-align: center; 
+}
+
+/* Отображение индикатора при активных запросах */
+.htmx-request.request-indicator{
+    display: block;
+}
+
+/* Отображение блоков при активных запросах */
+.htmx-request ~ * {
+    display: none; 
+}
+
+.mainheader {
+    text-align: center;
+    font-family: "Roboto", sans-serif; 
+}
+
+.rightbar {
+    margin: 0;
+    padding: 0;
+    width: 20%;
+    background-color: #292929; /* Slightly darker gray */
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-family: "Roboto", sans-serif; 
+    font-weight: 500;
+    font-style: normal;
+    right: 0;
+
+    color: #f1f1f1; /* Lighter text for better contrast */
+}

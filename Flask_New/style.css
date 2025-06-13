@@ -1,0 +1,260 @@
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #6a82fb; /* Refined light blue */
+    --secondary-color: #fc5c7d; /* Soft coral pink */
+    --background-gradient: linear-gradient(135deg, #6a82fb, #fc5c7d); /* Smooth blue to pink gradient */
+    --sidebar-gradient: linear-gradient(135deg, #232526, #414345); /* Sleek dark gradient */
+    --button-color: #4f44d6; /* Elegant purple-blue for buttons */
+    --button-hover-color: #3a34b1; /* Darker button on hover */
+    --input-background: rgba(255, 255, 255, 0.2); /* Subtle transparency for inputs */
+    --input-focus: rgba(255, 255, 255, 0.3); /* Stronger focus for input */
+    --message-user-bg: #4f86d6; /* Cool blue for user messages */
+    --message-assistant-bg: #3b3b3b; /* Darker gray for assistant messages */
+    --text-color: #ffffff; /* White text */
+    --border-radius: 12px;
+    --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Softer shadow */
+    --font-family: 'Montserrat', sans-serif; /* Clean modern font */
+    --font-size: 16px; /* Standard text size */
+    --message-padding: 18px; /* Consistent padding for messages */
+}
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+
+/* Main content area */
+.main {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 40px;
+    background: var(--background-gradient);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+}
+
+/* Sidebar styling */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px; /* Perfect width for side navigation */
+    height: 100%;
+    background: var(--sidebar-gradient);
+    padding: 40px 20px;
+    overflow-y: auto;
+    font-family: var(--font-family);
+    color: var(--text-color);
+    box-shadow: var(--box-shadow);
+}
+
+/* Links in the sidebar */
+.sidebar .chatlink {
+    display: block;
+    padding: 12px 20px; /* Balanced padding for link size */
+    margin-bottom: 12px; /* Consistent spacing between links */
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.08); /* Light opacity for subtle contrast */
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.sidebar .chatlink a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    letter-spacing: 0.5px; /* Slightly improved readability */
+}
+
+.sidebar .chatlink:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px); /* Subtle hover lift */
+}
+
+/* Hide delete button by default */
+.sidebar .chatlink .deletebtn {
+    display: none;
+}
+
+/* Show delete button on hover */
+.sidebar .chatlink:hover .deletebtn {
+    display: inline;
+    color: var(--secondary-color);
+    float: right;
+}
+
+/* Chat input area */
+#chatinput {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Clean top border for separation */
+    background-color: rgba(0, 0, 0, 0.4); /* Subtle transparency for chat input container */
+}
+
+/* Chat input field */
+#chatinput input {
+    flex: 1;
+    height: 50px;
+    border-radius: var(--border-radius);
+    border: none;
+    padding: 0 15px;
+    font-size: var(--font-size);
+    font-family: var(--font-family);
+    background: var(--input-background);
+    color: var(--text-color);
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+#chatinput input::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* Softer placeholder text */
+}
+
+#chatinput input:focus {
+    background: var(--input-focus);
+    box-shadow: 0 0 8px rgba(106, 130, 251, 0.5); /* Light focus glow */
+}
+
+/* Send button */
+#chatinput button {
+    background: var(--button-color);
+    color: var(--text-color);
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: var(--font-size);
+    margin-left: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(79, 68, 214, 0.3); /* Button shadow */
+}
+
+#chatinput button:hover {
+    background: var(--button-hover-color);
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+/* AI description */
+#aidescription {
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.6); /* Higher contrast for readability */
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    font-family: var(--font-family);
+    font-size: 18px; /* Slightly larger font */
+    color: var(--text-color);
+    box-shadow: var(--box-shadow);
+    backdrop-filter: blur(12px); /* Blurred background effect */
+}
+
+/* Chat messages */
+.message {
+    border-radius: var(--border-radius);
+    padding: var(--message-padding);
+    margin: 20px 0;
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.1); /* Transparent background for consistency */
+    box-shadow: var(--box-shadow);
+    max-width: 70%;
+    clear: both;
+    position: relative;
+}
+
+/* Message arrow pointers */
+.message::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    width: 0;
+    height: 0;
+}
+
+.message.user {
+    margin-left: auto;
+    background: var(--message-user-bg);
+}
+
+.message.user::before {
+    right: -15px;
+    border-left: 15px solid var(--message-user-bg);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+}
+
+.message.assistant {
+    margin-right: auto;
+    background: var(--message-assistant-bg);
+}
+
+.message.assistant::before {
+    left: -15px;
+    border-right: 15px solid var(--message-assistant-bg);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+}
+
+/* Message images */
+.message img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.message.user img {
+    float: right;
+    margin-left: 15px;
+}
+
+.message.assistant img {
+    float: left;
+    margin-right: 15px;
+}
+
+/* Loading indicator */
+.request-indicator {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    font-family: var(--font-family);
+    color: var(--text-color);
+}
+
+.htmx-request .request-indicator {
+    display: block;
+}
+
+.htmx-request ~ * {
+    display: none;
+}
+
+/* Main header */
+.mainheader {
+    text-align: center;
+    font-family: var(--font-family);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px; /* Stylized typography */
+}
+
+/* Right sidebar */
+.rightbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 240px;
+    height: 100%;
+    background: var(--sidebar-gradient);
+    padding: 40px 20px;
+    overflow-y: auto;
+    font-family: var(--font-family);
+    color: var(--text-color);
+    box-shadow: var(--box-shadow);
+}
