@@ -1,8 +1,0 @@
-{%for i in range(0, nms)%}
-
-<div class="message {{messages[i]['role']}}">
-    <img src="/static/{{messages[i]['role']}}.png" alt="Avatar">
-    <p>{{messages[i]['content']|safe}}</p>
-</div>
-
-{%endfor%}
