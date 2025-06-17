@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pymilvus
+openai
+pydantic
+python-dotenv
+python-multipart
+uuid

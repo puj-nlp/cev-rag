@@ -1,4 +1,0 @@
-openai
-pymilvus
-flask
-flask_session
