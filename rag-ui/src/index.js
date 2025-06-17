@@ -5,25 +5,51 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import App from './App';
 
-// Crear un tema personalizado
+// Crear un tema personalizado para Ventana a la Verdad
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#0d47a1', // Azul que representa los colores de Colombia
+      main: '#111827', // Color oscuro para la barra superior
     },
     secondary: {
-      main: '#b71c1c', // Rojo para elementos secundarios, también de la bandera colombiana
+      main: '#1976d2', // Azul para botones y elementos secundarios
     },
     background: {
-      default: '#f5f5f5',
+      default: '#ffffff',
+      paper: '#f9fafb',
     },
+    text: {
+      primary: '#111827',
+      secondary: '#6b7280',
+    }
   },
   typography: {
     fontFamily: [
+      'Inter',
       'Roboto',
       'Arial',
       'sans-serif'
     ].join(','),
+    h4: {
+      fontWeight: 600,
+    }
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
+    },
   },
 });
 

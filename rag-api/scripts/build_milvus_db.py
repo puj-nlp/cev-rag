@@ -5,74 +5,74 @@ from pymilvus import connections, FieldSchema, CollectionSchema, DataType, utili
 from openai import OpenAI
 import numpy as np
 
-# Importar configuración
+# Import configuration
 import sys
 sys.path.append("..")
 import config
 
-# Configurar OpenAI
+# Configure OpenAI
 try:
     with open("../secrets.json", "r") as f:
         secrets = json.load(f)
         api_key = secrets.get("openai_api_key", config.OPENAI_API_KEY)
 except Exception as e:
-    print(f"No se pudo cargar secrets.json: {e}")
+    print(f"Could not load secrets.json: {e}")
     api_key = config.OPENAI_API_KEY
     
 client = OpenAI(api_key=api_key)
 
-# Configurar rutas
+# Configure paths
 DATA_DIR = "./data"
 ABSTRACT_DATA_PATH = os.path.join(DATA_DIR, "processed_data.json")
 
 def get_embedding(text, model=config.EMBEDDING_MODEL):
-    """Obtiene el embedding de un texto usando OpenAI."""
-    # Asegurarse de que el texto no es None o vacío
+    """Gets the embedding of a text using OpenAI."""
+    # Make sure the text is not None or empty
     if not text:
-        text = "Contenido vacío"
+        text = "Empty content"
     
-    # Limpiar el texto
+    # Clean the text
     text = text.replace("\n", " ").strip()
     
-    # Usar el formato correcto para la API de OpenAI v1.0+
+    # Use the correct format for OpenAI API v1.0+
     try:
         response = client.embeddings.create(
-            input=text,  # String simple, no lista
+            input=text,  # Simple string, not a list
             model=model
         )
         return response.data[0].embedding
     except Exception as e:
-        print(f"Error al generar embedding: {e}")
-        # Retornar un vector de ceros como fallback
-        # Usar la dimensión configurada en config.py
+        print(f"Error generating embedding: {e}")
+        # Return a zero vector as fallback
+        # Use the dimension configured in config.py
         return [0.0] * config.EMBEDDING_DIMENSION
 
 def connect_to_milvus():
-    """Conecta a Milvus."""
+    """Connects to Milvus."""
     try:
         connections.connect(
             alias="default", 
             host=config.MILVUS_HOST,
             port=config.MILVUS_PORT
         )
-        # En versiones nuevas de pymilvus, verificamos la conexión de otra manera
-        # is_connected ya no está disponible
+        # In newer versions of pymilvus, we verify connection differently
+        # is_connected is no longer available
         connections.get_connection_addr("default")
-        print("Conectado a Milvus exitosamente")
-        print(f"Se usará la colección: {config.ABSTRACT_COLLECTION}")
+        print("Successfully connected to Milvus")
+        print(f"Using collection: {config.ABSTRACT_COLLECTION}")
     except Exception as e:
-        print(f"Error al conectar a Milvus: {e}")
+        print(f"Error connecting to Milvus: {e}")
         raise
 
 def check_existing_collection_dimension(collection_name):
     """
-    Verifica si una colección ya existe y obtiene su dimensión de embedding.
+    Checks if a collection already exists and gets its embedding dimension.
     
     Args:
-        collection_name: Nombre de la colección a verificar
+        collection_name: Name of the collection to check
         
     Returns:
-        int or None: La dimensión del vector de embedding si la colección existe, None en caso contrario
+        int or None: The embedding vector dimension if the collection exists, None otherwise
     """
     if not utility.has_collection(collection_name):
         return None
@@ -82,33 +82,33 @@ def check_existing_collection_dimension(collection_name):
         schema = collection.schema
         for field in schema.fields:
             if field.name == "embedding" and hasattr(field, "dim"):
-                print(f"Colección {collection_name} ya existe con dimensión de embedding: {field.dim}")
+                print(f"Collection {collection_name} already exists with embedding dimension: {field.dim}")
                 return field.dim
     except Exception as e:
-        print(f"Error al verificar dimensión de colección existente: {e}")
+        print(f"Error checking existing collection dimension: {e}")
     
     return None
 
 def create_collection(collection_name, dimension=config.EMBEDDING_DIMENSION):
-    """Crea una colección en Milvus con el esquema específico."""
-    # Verificar si la colección ya existe y obtener su dimensión
+    """Creates a collection in Milvus with the specific schema."""
+    # Check if the collection already exists and get its dimension
     existing_dimension = check_existing_collection_dimension(collection_name)
     
-    # Si la colección ya existe, usar su dimensión en lugar de eliminarla
+    # If the collection already exists, use its dimension instead of deleting it
     if existing_dimension:
-        print(f"Usando colección existente {collection_name} con dimensión {existing_dimension}")
+        print(f"Using existing collection {collection_name} with dimension {existing_dimension}")
         return Collection(collection_name)
     
-    # Si la colección no existe o se decidió eliminarla, crear una nueva
+    # If the collection doesn't exist or was decided to be deleted, create a new one
     if utility.has_collection(collection_name):
         utility.drop_collection(collection_name)
-        print(f"Se eliminó la colección existente: {collection_name}")
+        print(f"Existing collection was deleted: {collection_name}")
     
-    print(f"Creando nueva colección {collection_name} con dimensión {dimension}")
+    print(f"Creating new collection {collection_name} with dimension {dimension}")
     
-    # Definir el esquema apropiado según la colección
+    # Define appropriate schema based on the collection
     if collection_name == config.ABSTRACT_COLLECTION:
-        # Esquema de source_abstract según la estructura definida en Milvus
+        # source_abstract schema according to the structure defined in Milvus
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=False),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=dimension),
@@ -120,47 +120,47 @@ def create_collection(collection_name, dimension=config.EMBEDDING_DIMENSION):
             FieldSchema(name="type", dtype=DataType.VARCHAR, max_length=256),
             FieldSchema(name="dynamic_field", dtype=DataType.JSON)
         ]
-        print(f"Creando colección {collection_name} con esquema específico para datos de la Comisión de la Verdad")
+        print(f"Creating collection {collection_name} with specific schema for Truth Commission data")
     else:
-        # Esquema genérico para otras colecciones
+        # Generic schema for other collections
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=False),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=dimension),
             FieldSchema(name="content", dtype=DataType.VARCHAR, max_length=65535),
             FieldSchema(name="metadata", dtype=DataType.VARCHAR, max_length=65535)
         ]
-        print(f"Creando colección {collection_name} con esquema genérico")
+        print(f"Creating collection {collection_name} with generic schema")
     
-    schema = CollectionSchema(fields, f"Colección {collection_name}")
+    schema = CollectionSchema(fields, f"Collection {collection_name}")
     collection = Collection(name=collection_name, schema=schema)
-    print(f"Colección creada: {collection_name}")
+    print(f"Collection created: {collection_name}")
     
     return collection
 
 def load_data(filepath):
-    """Carga datos desde un archivo JSON."""
+    """Loads data from a JSON file."""
     if not os.path.exists(filepath):
-        print(f"El archivo {filepath} no existe")
+        print(f"File {filepath} does not exist")
         return []
     
     with open(filepath, "r") as f:
         data = json.load(f)
     
-    print(f"Se cargaron {len(data)} documentos de {filepath}")
+    print(f"Loaded {len(data)} documents from {filepath}")
     return data
 
 def process_and_insert_data(collection, data, start_id=0):
-    """Procesa los datos y los inserta en la colección según su esquema."""
-    # Determinar tamaño de lote para procesar e insertar por partes
-    batch_size = 100  # Ajustar según sea necesario
+    """Processes data and inserts it into the collection according to its schema."""
+    # Determine batch size to process and insert in parts
+    batch_size = 100  # Adjust as needed
     batch_count = (len(data) + batch_size - 1) // batch_size
     
-    print("Generando embeddings... (puede tardar varios minutos)")
+    print("Generating embeddings... (this may take several minutes)")
     
-    # Contador para todos los documentos procesados
+    # Counter for all processed documents
     processed_count = 0
     
-    # Determinar el esquema de la colección
+    # Determine collection schema
     collection_schema = collection.schema
     field_names = [field.name for field in collection_schema.fields]
     is_source_abstract = "text" in field_names and "source_id" in field_names
@@ -170,21 +170,21 @@ def process_and_insert_data(collection, data, start_id=0):
         batch_end = min((batch_idx + 1) * batch_size, len(data))
         batch_items = list(data.values())[batch_start:batch_end] if isinstance(data, dict) else data[batch_start:batch_end]
         
-        # Inicializar listas para este lote según el esquema
-        batch_data = {"id": []}  # ID siempre está presente
+        # Initialize lists for this batch according to schema
+        batch_data = {"id": []}  # ID is always present
         
-        # Inicializar listas según el esquema
+        # Initialize lists according to schema
         for field in field_names:
-            if field != "id":  # ID ya está inicializado
+            if field != "id":  # ID is already initialized
                 batch_data[field] = []
         
-        print(f"Procesando lote {batch_idx+1}/{batch_count} (documentos {batch_start+1}-{batch_end})")
+        print(f"Processing batch {batch_idx+1}/{batch_count} (documents {batch_start+1}-{batch_end})")
         
         for i, item in enumerate(batch_items):
             if i % 10 == 0:
-                print(f"Procesando documento {batch_start+i+1}/{len(data)}")
+                print(f"Processing document {batch_start+i+1}/{len(data)}")
             
-            # Generar el embedding primero para verificar si podemos continuar
+            # Generate the embedding first to verify if we can continue
             text_content = ""
             if "Text" in item:
                 text_content = item["Text"]
@@ -194,19 +194,19 @@ def process_and_insert_data(collection, data, start_id=0):
                 text_content = item["content"]
             
             if not text_content:
-                print(f"Saltando documento #{batch_start+i+1} - sin contenido")
+                print(f"Skipping document #{batch_start+i+1} - no content")
                 continue
                 
             try:
                 embedding = get_embedding(text_content)
                 
-                # Agregar ID a la lista de datos
+                # Add ID to the data list
                 batch_data["id"].append(start_id + processed_count)
                 batch_data["embedding"].append(embedding)
                 
-                # Procesar datos según el esquema de la colección
+                # Process data according to collection schema
                 if is_source_abstract:
-                    # Esquema para source_abstract
+                    # Schema for source_abstract
                     batch_data["text"].append(text_content)
                     batch_data["title"].append(item.get("Title", "") or item.get("title", ""))
                     batch_data["source_id"].append(item.get("ID", "") or item.get("source_id", ""))
@@ -214,18 +214,18 @@ def process_and_insert_data(collection, data, start_id=0):
                     batch_data["link"].append(item.get("Link", "") or item.get("link", ""))
                     batch_data["page"].append(int(item.get("Page", 0) or item.get("page", 0) or 0))
                     
-                    # Campos dinámicos como JSON
+                    # Dynamic fields as JSON
                     dynamic_data = {}
                     for k, v in item.items():
                         if k not in ["Text", "Title", "ID", "Type", "Link", "Page", "text", "title", "source_id", "type", "link", "page"]:
                             dynamic_data[k] = v
                     batch_data["dynamic_field"].append(dynamic_data)
                 else:
-                    # Esquema para otras colecciones (contenido y metadata)
+                    # Schema for other collections (content and metadata)
                     content = text_content
                     batch_data["content"].append(content)
                     
-                    # Construir metadata como JSON
+                    # Build metadata as JSON
                     metadata = {}
                     for k, v in item.items():
                         if k not in ["content", "text"]:
@@ -234,20 +234,20 @@ def process_and_insert_data(collection, data, start_id=0):
                 
                 processed_count += 1
             except Exception as e:
-                print(f"Error procesando documento #{batch_start+i+1}: {e}")
+                print(f"Error processing document #{batch_start+i+1}: {e}")
         
-        # Si tenemos datos en este lote, insertarlos
+        # If we have data in this batch, insert it
         if batch_data["id"]:
             try:
                 collection.insert(batch_data)
-                print(f"Lote {batch_idx+1}/{batch_count} insertado: {len(batch_data['id'])} documentos")
+                print(f"Batch {batch_idx+1}/{batch_count} inserted: {len(batch_data['id'])} documents")
             except Exception as e:
-                print(f"Error al insertar lote {batch_idx+1}: {e}")
+                print(f"Error inserting batch {batch_idx+1}: {e}")
     
-    return processed_count  # Devolver el número total de documentos procesados
+    return processed_count  # Return total number of documents processed
 
 def create_index_and_load(collection):
-    """Crea un índice y carga la colección en memoria."""
+    """Creates an index and loads the collection into memory."""
     index_params = {
         "metric_type": "COSINE",
         "index_type": "HNSW",
@@ -255,68 +255,68 @@ def create_index_and_load(collection):
     }
     
     collection.create_index("embedding", index_params)
-    print("Índice creado")
+    print("Index created")
     
     collection.load()
-    print(f"Colección cargada con {collection.num_entities} entidades")
+    print(f"Collection loaded with {collection.num_entities} entities")
 
 def main():
-    # Conectar a Milvus
+    # Connect to Milvus
     connect_to_milvus()
     
-    # Flag para saber si se creó alguna colección
+    # Flag to know if any collection was created
     created_collection = False
     
-    # Verificar si hay alguna ruta alternativa de datos
-    # Por si el archivo está en la raíz del proyecto o si hay datos transformados
+    # Check if there's any alternative data path
+    # In case the file is in the project root or if there is transformed data
     if not os.path.exists(ABSTRACT_DATA_PATH):
         alt_paths = [
             "./processed_data.json",
             "../processed_data.json",
             os.path.join(DATA_DIR, "abstracts_data.json"),
-            os.path.join(DATA_DIR, "transformed_processed_data.json"),  # Buscar datos transformados
+            os.path.join(DATA_DIR, "transformed_processed_data.json"),  # Look for transformed data
         ]
         for path in alt_paths:
             if os.path.exists(path):
-                print(f"Usando ruta alternativa para datos: {path}")
+                print(f"Using alternative path for data: {path}")
                 abstract_data_path = path
                 break
     else:
         abstract_data_path = ABSTRACT_DATA_PATH
     
-    # Cargar datos de processed_data.json
+    # Load data from processed_data.json
     abstract_data = load_data(abstract_data_path)
     if abstract_data:
-        # Crear la colección
+        # Create the collection
         abstract_collection = create_collection(config.ABSTRACT_COLLECTION)
         
-        # Procesar e insertar datos
+        # Process and insert data
         docs_processed = process_and_insert_data(abstract_collection, abstract_data)
-        print(f"Total de documentos procesados: {docs_processed}")
+        print(f"Total documents processed: {docs_processed}")
         
-        # Crear índice y cargar la colección
+        # Create index and load the collection
         create_index_and_load(abstract_collection)
         created_collection = True
     
-    # Si no se encontró ningún dato para importar, crear una colección vacía como fallback
+    # If no data was found to import, create an empty collection as fallback
     if not created_collection:
-        print("No se encontraron datos para importar. Creando colección vacía como fallback...")
+        print("No data found to import. Creating empty collection as fallback...")
         fallback_collection = create_collection(config.ABSTRACT_COLLECTION)
         
-        # Crear un documento de ejemplo para asegurar que la colección funcione
+        # Create an example document to ensure the collection works
         sample_data = [{
-            "content": "Este es un documento de ejemplo para la colección de la Comisión de la Verdad sobre el conflicto colombiano.",
+            "content": "This is an example document for the Truth Commission collection about the Colombian conflict.",
             "source": "sample_document"
         }]
         process_and_insert_data(fallback_collection, sample_data)
         create_index_and_load(fallback_collection)
-        print("Colección fallback creada y cargada con un documento de ejemplo.")
+        print("Fallback collection created and loaded with an example document.")
     
-    # Desconectar
+    # Disconnect
     connections.disconnect("default")
-    print("Desconectado de Milvus")
+    print("Disconnected from Milvus")
     
-    # Crear archivo de registro
+    # Create log file
     log_data = {
         "timestamp": datetime.datetime.now().isoformat(),
         "database": config.MILVUS_DATABASE,
@@ -329,7 +329,7 @@ def main():
     with open(os.path.join(DATA_DIR, "build_log.json"), "w") as f:
         json.dump(log_data, f, indent=2)
     
-    print("Proceso completado y registro guardado.")
+    print("Process completed and log saved.")
 
 if __name__ == "__main__":
     main()

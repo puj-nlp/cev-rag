@@ -3,14 +3,15 @@ from typing import List, Optional, Dict, Any
 
 
 class Message(BaseModel):
-    """Modelo para los mensajes del chat."""
+    """Model for chat messages."""
     content: str
     is_bot: bool = False
     timestamp: Optional[str] = None
+    references: Optional[List[Dict[str, Any]]] = None
 
 
 class ChatSession(BaseModel):
-    """Modelo para las sesiones de chat."""
+    """Model for chat sessions."""
     id: str
     title: str
     messages: List[Message] = []
@@ -19,16 +20,16 @@ class ChatSession(BaseModel):
 
 
 class QuestionRequest(BaseModel):
-    """Modelo para las solicitudes de preguntas."""
+    """Model for question requests."""
     question: str
     chat_id: str
 
 
 class ChatRequest(BaseModel):
-    """Modelo para las solicitudes de creación de chat."""
-    title: str = "Nueva conversación"
+    """Model for chat creation requests."""
+    title: str = "New conversation"
 
 
 class ErrorResponse(BaseModel):
-    """Modelo para las respuestas de error."""
+    """Model for error responses."""
     detail: str

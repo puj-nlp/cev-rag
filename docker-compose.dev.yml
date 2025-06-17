@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   rag-api:
     build: ./rag-api
@@ -20,13 +22,22 @@ services:
       start_period: 30s
 
   rag-ui:
-    build: ./rag-ui
+    build:
+      context: ./rag-ui
+      dockerfile: Dockerfile.dev
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - rag-api
     volumes:
       - ./rag-ui:/app
+      - /app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:8000
+    stdin_open: true
+    tty: true
 
   milvus:
     image: "milvusdb/milvus:v2.3.9"

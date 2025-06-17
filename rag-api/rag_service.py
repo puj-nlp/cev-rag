@@ -4,231 +4,325 @@ from openai import OpenAI
 from pymilvus import connections, Collection, utility, db
 import config
 
-# Inicializar el cliente de OpenAI
+# Initialize OpenAI client
 client = OpenAI(api_key=config.OPENAI_API_KEY)
 
-# Conectar a Milvus
+# Connect to Milvus
 connections.connect(
     alias="default", 
     host=config.MILVUS_HOST,
     port=config.MILVUS_PORT
 )
 
-print("Conectado a Milvus exitosamente")
+print("Successfully connected to Milvus")
 
-# Verificar disponibilidad de bases de datos e intentar seleccionar la base de datos correcta
+# Función para diagnosticar la estructura de la colección Milvus
+def diagnose_milvus_collection():
+    try:
+        print("\n--- DIAGNÓSTICO DE MILVUS ---")
+        
+        # Listar todas las colecciones
+        from pymilvus import utility
+        collections = utility.list_collections()
+        print(f"Colecciones disponibles: {collections}")
+        
+        # Tratar de acceder a la colección principal
+        try:
+            collection_name = config.ABSTRACT_COLLECTION
+            print(f"\nVerificando colección: {collection_name}")
+            
+            collection = Collection(name=collection_name)
+            
+            # Obtener información del schema
+            schema = collection.schema
+            print(f"Schema de la colección: {schema}")
+            
+            # Listar campos
+            fields = [field.name for field in schema.fields]
+            print(f"Campos disponibles: {fields}")
+            
+            # Verificar cantidad de datos
+            entity_count = collection.num_entities
+            print(f"Número de entidades: {entity_count}")
+            
+            # Si hay datos, intentar obtener algunas muestras
+            if entity_count > 0:
+                print("\nIntentando obtener muestras de datos:")
+                
+                # Cargar la colección
+                collection.load()
+                
+                # Realizar una búsqueda aleatoria
+                import random
+                random_vec = [random.random() for _ in range(config.EMBEDDING_DIMENSION)]
+                
+                # Usar todos los campos excepto embedding
+                output_fields = [f for f in fields if f != "embedding"]
+                print(f"Campos a consultar: {output_fields}")
+                
+                # Hacer una búsqueda
+                results = collection.search(
+                    data=[random_vec],
+                    anns_field="embedding",
+                    param={"metric_type": "COSINE", "params": {"nprobe": 10}},
+                    limit=3,
+                    output_fields=output_fields
+                )
+                
+                # Mostrar resultados
+                print(f"Resultados encontrados: {len(results[0])}")
+                for i, hit in enumerate(results[0]):
+                    print(f"\nDocumento {i+1}:")
+                    doc_dict = hit.entity.to_dict()
+                    print(f"Campos disponibles en el resultado: {list(doc_dict.keys())}")
+                    
+                    # Mostrar algunos valores
+                    for key, value in doc_dict.items():
+                        # Limitar la longitud para campos largos
+                        if isinstance(value, str) and len(value) > 100:
+                            print(f"  - {key}: {value[:100]}...")
+                        else:
+                            print(f"  - {key}: {value}")
+            
+        except Exception as e:
+            print(f"Error verificando colección {collection_name}: {e}")
+            import traceback
+            print(traceback.format_exc())
+    
+    except Exception as e:
+        print(f"Error en diagnóstico general: {e}")
+        import traceback
+        print(traceback.format_exc())
+
+# Ejecutar diagnóstico al inicio
+diagnose_milvus_collection()
+
+# Verify database availability and try to select the correct database
 try:
-    # Intentar listar las bases de datos disponibles
+    # Try to list available databases
     databases = utility.list_database()
-    print(f"Bases de datos disponibles: {databases}")
+    print(f"Available databases: {databases}")
     
     if config.MILVUS_DATABASE in databases:
-        print(f"Base de datos {config.MILVUS_DATABASE} encontrada")
-        # Intentar seleccionar la base de datos específica
+        print(f"Database {config.MILVUS_DATABASE} found")
+        # Try to select the specific database
         try:
             db.using_database(config.MILVUS_DATABASE)
-            print(f"Base de datos {config.MILVUS_DATABASE} seleccionada correctamente")
+            print(f"Database {config.MILVUS_DATABASE} selected successfully")
         except Exception as e:
-            print(f"Error al seleccionar la base de datos {config.MILVUS_DATABASE}: {e}")
+            print(f"Error selecting database {config.MILVUS_DATABASE}: {e}")
     else:
-        print(f"¡ADVERTENCIA! Base de datos {config.MILVUS_DATABASE} no encontrada")
+        print(f"WARNING! Database {config.MILVUS_DATABASE} not found")
 except Exception as e:
-    print(f"Error al listar bases de datos: {e}")
-    print("La versión de PyMilvus o Milvus instalada puede no soportar múltiples bases de datos")
+    print(f"Error listing databases: {e}")
+    print("The installed PyMilvus or Milvus version may not support multiple databases")
 
 def get_embedding(text: str, model: str = config.EMBEDDING_MODEL) -> List[float]:
     """
-    Obtiene el embedding de un texto usando OpenAI.
+    Gets the embedding of a text using OpenAI.
     
     Args:
-        text: Texto para el cual se generará el embedding
-        model: Modelo de embedding a utilizar
+        text: Text for which the embedding will be generated
+        model: Embedding model to use
         
     Returns:
-        List[float]: Vector de embedding
+        List[float]: Embedding vector
     """
-    # Asegurarse de que el texto no es None o vacío
+    # Make sure the text is not None or empty
     if not text:
-        text = "Consulta vacía"
+        text = "Empty query"
     
-    # Limpiar el texto
+    # Clean the text
     text = text.replace("\n", " ").strip()
     
     try:
-        print(f"Generando embedding con modelo: {model}")
-        # Usar el formato correcto para la API de OpenAI v1.0+
+        print(f"Generating embedding with model: {model}")
+        # Use correct format for OpenAI API v1.0+
         response = client.embeddings.create(
-            input=text,  # String simple, no lista
+            input=text,  # Simple string, not a list
             model=model
         )
         embedding = response.data[0].embedding
-        print(f"Embedding generado con dimensión: {len(embedding)}")
+        print(f"Embedding generated with dimension: {len(embedding)}")
         return embedding
     except Exception as e:
-        print(f"Error al generar embedding: {e}")
-        print(f"Usando fallback con dimensión: {config.EMBEDDING_DIMENSION}")
-        # Retornar un vector de ceros como fallback
-        # Usar la dimensión configurada en config.py
+        print(f"Error generating embedding: {e}")
+        print(f"Using fallback with dimension: {config.EMBEDDING_DIMENSION}")
+        # Return a zero vector as fallback
+        # Use dimension configured in config.py
         return [0.0] * config.EMBEDDING_DIMENSION
 
 def connect_to_milvus_database():
     """
-    Verifica la conexión a Milvus.
+    Verifies the connection to Milvus.
     
     Returns:
-        bool: True si la conexión es exitosa, False en caso contrario
+        bool: True if the connection is successful, False otherwise
     """
     try:
-        # Verificar que la conexión está activa
+        # Verify that the connection is active
         connections.get_connection_addr("default")
-        print("Conexión a Milvus verificada")
+        print("Milvus connection verified")
         return True
     except Exception as e:
-        print(f"Error al verificar conexión a Milvus: {e}")
+        print(f"Error verifying Milvus connection: {e}")
         return False
 
 def get_abstract_collection() -> Collection:
     """
-    Obtiene la colección source_abstract.
+    Gets the source_abstract collection.
     
     Returns:
-        Collection: Colección de Milvus
+        Collection: Milvus collection
     """
     try:
-        # Intentar seleccionar la base de datos correcta primero
+        # Try to select the correct database first
         try:
             db.using_database(config.MILVUS_DATABASE)
-            print(f"Base de datos {config.MILVUS_DATABASE} seleccionada para buscar colección")
+            print(f"Database {config.MILVUS_DATABASE} selected to search for collection")
         except Exception as e:
-            print(f"Nota: No se pudo seleccionar la base de datos {config.MILVUS_DATABASE}: {e}")
-            print("Esto es normal en versiones antiguas de Milvus o en Milvus Standalone")
+            print(f"Note: Could not select database {config.MILVUS_DATABASE}: {e}")
+            print("This is normal in older versions of Milvus or in Milvus Standalone")
         
-        # Lista todas las colecciones disponibles para diagnóstico
+        # List all available collections for diagnostic
         from pymilvus import utility
         collections = utility.list_collections()
-        print(f"Colecciones disponibles después de seleccionar base de datos: {collections}")
+        print(f"Available collections after selecting database: {collections}")
         
-        # Buscar formato de colección más probable
+        # Find most likely collection format
         collection_candidates = [
             config.ABSTRACT_COLLECTION,                               # source_abstract
             f"{config.MILVUS_DATABASE}.{config.ABSTRACT_COLLECTION}", # colombia_data_qaps.source_abstract
         ]
         
-        # Si la colección aparece en la lista, usar ese nombre exacto
+        # If the collection appears in the list, use that exact name
         collection_found = False
         for collection in collections:
             if collection in collection_candidates or collection == config.ABSTRACT_COLLECTION:
-                print(f"Colección encontrada exactamente como: {collection}")
-                collection_candidates.insert(0, collection)  # Poner esta al principio
+                print(f"Collection found exactly as: {collection}")
+                collection_candidates.insert(0, collection)  # Put this at the beginning
                 collection_found = True
         
         if not collection_found:
-            print(f"⚠️ ADVERTENCIA: No se encontró la colección en la lista de colecciones disponibles")
+            print(f"⚠️ WARNING: Collection not found in the list of available collections")
         
-        # Intentar todos los formatos de colección posibles
+        # Try all possible collection formats
         for collection_name in collection_candidates:
             try:
-                print(f"Intentando acceder a la colección: {collection_name}")
+                print(f"Attempting to access collection: {collection_name}")
                 collection = Collection(name=collection_name)
-                print(f"Colección accedida exitosamente: {collection_name}")
+                print(f"Collection accessed successfully: {collection_name}")
                 
-                # Verificar si la colección tiene datos
+                # Check if the collection has data
                 entity_count = collection.num_entities
-                print(f"Número de entidades en {collection_name}: {entity_count}")
+                print(f"Number of entities in {collection_name}: {entity_count}")
                 
                 if entity_count == 0:
-                    print(f"⚠️ ADVERTENCIA: La colección {collection_name} está vacía ⚠️")
-                    print("La colección existe pero no contiene datos. Verifique que se hayan cargado los datos correctamente.")
-                    # A pesar de estar vacía, devolvemos la colección para que el error sea más específico después
+                    print(f"⚠️ WARNING: Collection {collection_name} is empty ⚠️")
+                    print("The collection exists but contains no data. Verify that the data has been loaded correctly.")
+                    # Despite being empty, we return the collection so that the error is more specific later
                 
-                # Verificar si la colección está cargada o cargarla
+                # Check if the collection is loaded or load it
                 try:
                     collection.load()
-                    print(f"Colección {collection_name} cargada exitosamente")
+                    print(f"Collection {collection_name} loaded successfully")
                 except Exception as load_err:
-                    print(f"Aviso al cargar la colección {collection_name}: {load_err}")
+                    print(f"Note when loading collection {collection_name}: {load_err}")
                 
                 return collection
             except Exception as e:
-                print(f"Error al acceder a la colección {collection_name}: {e}")
+                print(f"Error accessing collection {collection_name}: {e}")
                 continue
         
-        # Si llegamos aquí, intentemos una vez más con un enfoque diferente
+        # If we get here, let's try one more time with a different approach
         try:
-            # Si tenemos la base de datos correcta, intenta forzar la conexión completa
+            # If we have the correct database, try to force the complete connection
             connection_string = f"{config.MILVUS_DATABASE}/{config.ABSTRACT_COLLECTION}"
-            print(f"Intentando último enfoque con: {connection_string}")
+            print(f"Trying last approach with: {connection_string}")
             collection = Collection(name=connection_string)
-            print(f"Colección accedida exitosamente con conexión completa: {connection_string}")
+            print(f"Collection accessed successfully with complete connection: {connection_string}")
             return collection
         except Exception as e:
-            print(f"Error en el último intento: {e}")
+            print(f"Error in last attempt: {e}")
             
-        # Si llegamos aquí, ninguno de los intentos anteriores tuvo éxito
-        raise Exception(f"No se pudo acceder a ninguna colección. Formatos intentados: {collection_candidates}")
+        # If we get here, none of the previous attempts were successful
+        raise Exception(f"Could not access any collection. Formats tried: {collection_candidates}")
     except Exception as e:
-        print(f"Error general al obtener colección: {e}")
+        print(f"General error getting collection: {e}")
         raise
 
 def get_documents_from_query(query_vec: List[float], collection: Collection, top_k: int = config.TOP_K) -> List[Dict]:
     """
-    Busca documentos relevantes en una colección de Milvus.
+    Searches for relevant documents in a Milvus collection.
     
     Args:
-        query_vec: Vector de embedding de la consulta
-        collection: Colección de Milvus donde buscar
-        top_k: Número de documentos a recuperar
+        query_vec: Query embedding vector
+        collection: Milvus collection to search in
+        top_k: Number of documents to retrieve
         
     Returns:
-        List[Dict]: Lista de documentos relevantes
+        List[Dict]: List of relevant documents
     """
-    # Verificar primero si la colección tiene datos
+    # First check if the collection has data
     entity_count = collection.num_entities
     if entity_count == 0:
-        raise Exception(f"La colección {collection.name} está vacía. No hay documentos para buscar. Asegúrese de que se hayan cargado correctamente los datos en la colección.")
+        raise Exception(f"The collection {collection.name} is empty. There are no documents to search for. Make sure the data has been loaded correctly into the collection.")
 
     search_params = {
         "metric_type": "COSINE",
         "params": {"nprobe": 10}
     }
     
-    # Asegurarse de que la colección esté cargada
+    # Make sure the collection is loaded
     try:
         collection.load()
-        print(f"Colección {collection.name} cargada exitosamente")
+        print(f"Collection {collection.name} loaded successfully")
     except Exception as e:
-        print(f"Aviso al cargar la colección: {e}")
+        print(f"Note when loading collection: {e}")
     
-    # Detectar qué campos están disponibles en la colección
+    # Detect which fields are available in the collection
     collection_info = collection.schema
     field_names = [field.name for field in collection_info.fields]
     output_fields = []
     
-    # Detectar la dimensión del vector en la colección
+    # Detect the vector dimension in the collection
     embedding_field = next((field for field in collection_info.fields if field.name == "embedding"), None)
     collection_vector_dim = embedding_field.dim if embedding_field else None
     
-    # Verificar si las dimensiones coinciden
+    # Check if the dimensions match
     if collection_vector_dim is not None and len(query_vec) != collection_vector_dim:
-        print(f"¡ADVERTENCIA! Dimensión del vector de consulta ({len(query_vec)}) no coincide con la colección ({collection_vector_dim})")
-        # Ajustar dinámicamente el tamaño del vector si es necesario
+        print(f"WARNING! Query vector dimension ({len(query_vec)}) does not match the collection ({collection_vector_dim})")
+        # Dynamically adjust the vector size if necessary
         if len(query_vec) > collection_vector_dim:
-            # Truncar
+            # Truncate
             query_vec = query_vec[:collection_vector_dim]
-            print(f"Vector truncado a {collection_vector_dim} dimensiones")
+            print(f"Vector truncated to {collection_vector_dim} dimensions")
         else:
-            # Expandir con ceros
+            # Expand with zeros
             query_vec = query_vec + [0.0] * (collection_vector_dim - len(query_vec))
-            print(f"Vector expandido a {collection_vector_dim} dimensiones")
+            print(f"Vector expanded to {collection_vector_dim} dimensions")
     
-    # Configurar campos de salida basados en el esquema de la colección
-    if "text" in field_names:
-        output_fields.extend(["text", "title", "type", "link", "source_id", "page"])
-    elif "content" in field_names:
-        output_fields.extend(["content", "metadata"])
-    else:
-        # Añadir todos los campos excepto embedding e id
-        output_fields = [f for f in field_names if f not in ["embedding", "id"]]
+    # Configure output fields based on the schema we know exists in Milvus
+    print(f"Detectando campos en la colección. Campos disponibles: {field_names}")
+    
+    # Para la colección source_abstract, sabemos que estos son los campos que necesitamos
+    expected_fields = ["id", "text", "title", "type", "link", "source_id", "page"]
+    
+    # Filtrar solo los campos que existen en la colección
+    output_fields = [field for field in expected_fields if field in field_names and field != "id"]
+    
+    # Si por alguna razón no se encontraron los campos esperados, incluir todos excepto embedding
+    if not output_fields:
+        print("ADVERTENCIA: No se encontraron los campos esperados. Incluyendo todos excepto 'embedding'")
+        output_fields = [f for f in field_names if f not in ["embedding"]]
+    
+    print(f"Campos de salida finales: {output_fields}")
+    
+    print(f"Ejecutando búsqueda en Milvus con los siguientes parámetros:")
+    print(f"  - Collection: {collection.name}")
+    print(f"  - Vector dimension: {len(query_vec)}")
+    print(f"  - Output fields: {output_fields}")
+    print(f"  - Top-k: {top_k}")
     
     results = collection.search(
         data=[query_vec],
@@ -238,77 +332,138 @@ def get_documents_from_query(query_vec: List[float], collection: Collection, top
         output_fields=output_fields
     )
     
+    # Debug: Verifiquemos la estructura de los resultados
+    print(f"Tipo de resultados: {type(results)}")
+    print(f"Número de resultados: {len(results)}")
+    print(f"Estructura del primer conjunto de resultados: {type(results[0])}")
+    print(f"Número de hits en primer conjunto: {len(results[0])}")
+    
+    print(f"Campos disponibles en la colección: {field_names}")
+    print(f"Campos de salida configurados: {output_fields}")
+    
     documents = []
     for hit in results[0]:
+        print(f"Raw hit data: {hit}")
         doc_dict = hit.entity.to_dict()
+        print(f"Document dictionary from Milvus: {doc_dict}")
         
-        # Estructura de documento según el esquema detectado
-        if "text" in doc_dict:
-            # Esquema nuevo con text, title, type, etc. (source_abstract)
-            content = doc_dict.get('text', '')
-            metadata = {
-                "source_id": doc_dict.get('source_id', ''),
-                "link": doc_dict.get('link', ''),
-                "page": doc_dict.get('page', 0),
-                "title": doc_dict.get('title', ''),
-                "type": doc_dict.get('type', '')
-            }
-            
-            # Agregar datos dinámicos si existen
-            if "dynamic_field" in doc_dict and doc_dict["dynamic_field"]:
-                try:
-                    # El campo dynamic_field ya es JSON en Milvus, no necesita parsing
-                    dynamic_data = doc_dict["dynamic_field"]
-                    metadata.update(dynamic_data)
-                except Exception as e:
-                    print(f"Error al procesar dynamic_field: {e}")
-        else:
-            # Esquema antiguo con content y metadata
-            content = doc_dict.get('content', '')
-            metadata_str = doc_dict.get('metadata', '{}')
-            try:
-                metadata = json.loads(metadata_str) if isinstance(metadata_str, str) else metadata_str
-            except Exception as e:
-                print(f"Error al procesar metadata: {e}")
-                metadata = {}
+        # Basado en el esquema conocido de source_abstract
+        # El campo principal de contenido es 'text'
+        content = doc_dict.get('text', '')
         
+        # Si el campo text está vacío, verificar si hay otros campos con contenido
+        if not content:
+            print("ADVERTENCIA: Campo 'text' vacío, comprobando valores en todos los campos")
+            # Mostrar todos los campos y sus valores
+            for field_name, field_value in doc_dict.items():
+                if field_name != 'embedding' and field_value:
+                    print(f"  - Campo '{field_name}' tiene valor: {str(field_value)[:50]}...")
+                    
+        # Estructurar los metadatos
+        metadata = {
+            "source_id": doc_dict.get('source_id', ''),
+            "link": doc_dict.get('link', ''),
+            "page": doc_dict.get('page', 0),
+            "title": doc_dict.get('title', ''),
+            "type": doc_dict.get('type', '')
+        }
+        
+        # Depurar valores
+        print(f"Contenido extraído: {str(content)[:100]}..." if content else "Contenido: VACÍO")
+        print(f"Metadatos extraídos: {metadata}")
+        
+        # Si el contenido sigue vacío después de todas las verificaciones,
+        # usar el título como último recurso
+        if not content and doc_dict.get('title'):
+            content = f"Título del documento: {doc_dict.get('title')}"
+            print(f"Usando título como contenido: {content}")
+        
+        # Asegurarse de que tenemos algún contenido
+        if not content:
+            content = "No se pudo extraer contenido de este documento."
+            print("ADVERTENCIA: No se pudo obtener contenido del documento")
+        
+        # Añadir el documento procesado a la lista de resultados
         documents.append({
             "content": content,
             "metadata": metadata,
-            "score": hit.score
+            "score": hit.score,
+            # Incluir también los campos originales para depuración
+            "original_fields": doc_dict
         })
+        
+        # La adición del documento se hace en el bloque anterior
     
     return documents
 
 def generate_answer(question: str, context: str, chat_history: List[Dict]) -> str:
     """
-    Genera una respuesta utilizando OpenAI con el contexto recuperado.
+    Generates an answer using OpenAI with the retrieved context.
     
     Args:
-        question: Pregunta del usuario
-        context: Contexto relevante para responder
-        chat_history: Historial de la conversación
+        question: User's question
+        context: Relevant context for answering
+        chat_history: Conversation history
         
     Returns:
-        str: Respuesta generada
+        str: Generated answer with academic formatting and references
     """
     messages = [
-        {"role": "system", "content": "Eres un asistente experto en el conflicto colombiano y la Comisión de la Verdad. Responde preguntas basándote en la información proporcionada. Si la información proporcionada no es suficiente para responder la pregunta con certeza, indica que no tienes suficiente información y sugiere qué información adicional podría ser útil. Trata los temas con sensibilidad y respeto, reconociendo que involucran experiencias humanas difíciles relacionadas con el conflicto."}
+        {"role": "system", "content": """Eres un investigador académico especializado en el conflicto colombiano y la Comisión de la Verdad. Genera respuestas detalladas y rigurosas basadas en la información proporcionada. Sigue estas pautas específicas:
+
+1. FORMATO ACADÉMICO ESTRICTO:
+   - Comienza con una "Introducción" clara que presente el tema general.
+   - Utiliza subtítulos en negrita para organizar la información por regiones, temas o conceptos.
+   - Cuando menciones datos específicos, SIEMPRE incluye la cita en formato parentético al final de la oración: (Fuente: [Título del documento], Página: [número]).
+   - Termina con una "Conclusión" que sintetice los puntos principales.
+
+2. CITAS Y REFERENCIAS:
+   - Cita ESPECÍFICAMENTE páginas y fuentes exactas de los documentos.
+   - Usa el formato (Fuente: [Título exacto], Página: [número]) para cada cita.
+   - Al final, escribe el encabezado "Referencias" para que se añada la bibliografía completa.
+
+3. CONTENIDO Y TONO:
+   - Trata los temas con rigor académico y sensibilidad debido a la naturaleza del conflicto.
+   - Utiliza lenguaje preciso, objetivo y formal.
+   - Proporciona detalles concretos: cifras, nombres de regiones específicas, y hechos verificables.
+   - Si la información proporcionada es insuficiente, indícalo claramente y sugiere qué datos adicionales serían necesarios.
+
+Tu respuesta debe ser estructurada, académica y rica en datos específicos, similar a un informe formal de la Comisión de la Verdad."""}
     ]
     
-    # Añadir historial de chat
-    for message in chat_history:
+    # Add chat history (include only a limited amount to keep context focused)
+    relevant_history = chat_history[-5:] if len(chat_history) > 5 else chat_history
+    for message in relevant_history:
         role = "assistant" if message["is_bot"] else "user"
         messages.append({"role": role, "content": message["content"]})
     
-    # Añadir contexto y pregunta actual
-    messages.append({"role": "user", "content": f"Contexto: {context}\n\nPregunta: {question}"})
+    # Structure the prompt to encourage a high-quality academic response
+    content_prompt = f"""
+Por favor, genera una respuesta académica completa a la siguiente pregunta sobre el conflicto colombiano. 
+Utiliza ÚNICAMENTE la información proporcionada en el contexto y cita apropiadamente las fuentes.
+
+PREGUNTA:
+{question}
+
+CONTEXTO DISPONIBLE (cita estas fuentes específicamente):
+{context}
+
+INSTRUCCIONES ESPECIALES:
+1. Estructura tu respuesta con una "Introducción" clara, secciones con subtítulos en negrita, y una "Conclusión".
+2. IMPORTANTE: Cita las fuentes específicas usando el formato: (Fuente: [Título], Página: [número]) después de cada dato o afirmación.
+3. Incluye datos concretos, nombres específicos de regiones, y cifras exactas cuando estén disponibles.
+4. Al final de tu respuesta, añade el encabezado "Referencias" para indicar donde debe ir la bibliografía completa.
+
+Tu respuesta debe ser rigurosa, bien estructurada y académicamente fundamentada.
+"""
+    
+    messages.append({"role": "user", "content": content_prompt})
     
     response = client.chat.completions.create(
         model=config.COMPLETION_MODEL,
         messages=messages,
-        temperature=0.7,
-        max_tokens=500
+        temperature=0.3,  # Menor temperatura para respuestas más consistentes y precisas
+        max_tokens=800    # Aumentar el límite para permitir respuestas más detalladas
     )
     
     return response.choices[0].message.content

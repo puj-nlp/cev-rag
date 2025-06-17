@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Script de diagnóstico para Milvus.
-Este script proporciona información detallada sobre las bases de datos y colecciones
-disponibles en el servidor Milvus.
+Diagnostic script for Milvus.
+This script provides detailed information about databases and collections
+available on the Milvus server.
 """
 
 import os
@@ -11,16 +11,16 @@ import json
 from pymilvus import connections, utility, Collection
 from dotenv import load_dotenv
 
-# Cargar variables de entorno si existe un archivo .env
+# Load environment variables if .env file exists
 load_dotenv()
 
-# Configuración
+# Configuration
 MILVUS_HOST = os.getenv("MILVUS_HOST", "milvus")
 MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 MILVUS_DATABASE = os.getenv("MILVUS_DATABASE", "colombia_data_qaps")
 TARGET_COLLECTION = os.getenv("TARGET_COLLECTION", "source_abstract")
 
-# Posibles variantes de nombre de colección
+# Possible collection name variants
 COLLECTION_VARIANTS = [
     TARGET_COLLECTION,
     f"{MILVUS_DATABASE}.{TARGET_COLLECTION}",
@@ -28,7 +28,7 @@ COLLECTION_VARIANTS = [
 ]
 
 def print_separator(title=None):
-    """Imprime una línea separadora con título opcional."""
+    """Prints a separator line with optional title."""
     width = 80
     if title:
         print(f"\n{'=' * 10} {title} {'=' * (width - len(title) - 12)}")
@@ -36,9 +36,9 @@ def print_separator(title=None):
         print('\n' + '=' * width)
 
 def connect_to_milvus():
-    """Establece conexión con Milvus."""
-    print_separator("CONEXIÓN A MILVUS")
-    print(f"Conectando a Milvus en {MILVUS_HOST}:{MILVUS_PORT}...")
+    """Establishes connection with Milvus."""
+    print_separator("MILVUS CONNECTION")
+    print(f"Connecting to Milvus at {MILVUS_HOST}:{MILVUS_PORT}...")
     
     try:
         connections.connect(
@@ -46,179 +46,179 @@ def connect_to_milvus():
             host=MILVUS_HOST,
             port=MILVUS_PORT
         )
-        print("Conexión establecida correctamente")
+        print("Connection established successfully")
         return True
     except Exception as e:
-        print(f"Error al conectar: {e}")
+        print(f"Error connecting: {e}")
         return False
 
 def check_databases():
-    """Verifica las bases de datos disponibles."""
-    print_separator("BASES DE DATOS")
+    """Checks available databases."""
+    print_separator("DATABASES")
     
     try:
         databases = utility.list_database()
-        print(f"Bases de datos disponibles: {databases}")
+        print(f"Available databases: {databases}")
         
         for db_name in databases:
             print(f"- {db_name}")
         
         if MILVUS_DATABASE in databases:
-            print(f"\nBase de datos objetivo '{MILVUS_DATABASE}' encontrada ✓")
-            # Intentar seleccionar la base de datos
+            print(f"\nTarget database '{MILVUS_DATABASE}' found ✓")
+            # Try to select the database
             try:
                 from pymilvus import db
                 db.using_database(MILVUS_DATABASE)
-                print(f"✓ Base de datos '{MILVUS_DATABASE}' seleccionada correctamente")
+                print(f"✓ Database '{MILVUS_DATABASE}' selected successfully")
             except Exception as e:
-                print(f"⚠️ Error al seleccionar la base de datos '{MILVUS_DATABASE}': {e}")
+                print(f"⚠️ Error selecting database '{MILVUS_DATABASE}': {e}")
         else:
-            print(f"\n⚠️ Base de datos objetivo '{MILVUS_DATABASE}' NO encontrada ⚠️")
+            print(f"\n⚠️ Target database '{MILVUS_DATABASE}' NOT found ⚠️")
         
         return databases
     except AttributeError:
-        print("La versión actual de PyMilvus no soporta list_database()")
-        print("Esto es normal en versiones antiguas o en Milvus Standalone")
-        # Intentar seleccionar la base de datos de todos modos
+        print("Current PyMilvus version does not support list_database()")
+        print("This is normal in older versions or in Milvus Standalone")
+        # Try to select the database anyway
         try:
             from pymilvus import db
             db.using_database(MILVUS_DATABASE)
-            print(f"Intentando seleccionar base de datos '{MILVUS_DATABASE}' de todos modos...")
+            print(f"Attempting to select database '{MILVUS_DATABASE}' anyway...")
         except Exception as e:
-            print(f"Nota: Selección de base de datos no soportada: {e}")
+            print(f"Note: Database selection not supported: {e}")
         return []
     except Exception as e:
-        print(f"Error al listar bases de datos: {e}")
+        print(f"Error listing databases: {e}")
         return []
 
 def check_collections():
-    """Verifica las colecciones disponibles."""
-    print_separator("COLECCIONES")
+    """Checks available collections."""
+    print_separator("COLLECTIONS")
     
-    # Lista inicial de colecciones antes de seleccionar base de datos
+    # Initial list of collections before selecting database
     try:
         collections = utility.list_collections()
-        print(f"Colecciones disponibles antes de seleccionar base de datos ({len(collections)}):")
+        print(f"Available collections before selecting database ({len(collections)}):")
         
         for idx, coll in enumerate(collections, 1):
             print(f"{idx}. {coll}")
             
-        # Intentar seleccionar base de datos específica
+        # Try to select specific database
         try:
             from pymilvus import db
             db.using_database(MILVUS_DATABASE)
-            print(f"\nBase de datos '{MILVUS_DATABASE}' seleccionada para verificar colecciones")
+            print(f"\nDatabase '{MILVUS_DATABASE}' selected to check collections")
             
-            # Listar colecciones después de seleccionar la base de datos
+            # List collections after selecting the database
             collections_after = utility.list_collections()
-            print(f"Colecciones disponibles DESPUÉS de seleccionar base de datos ({len(collections_after)}):")
+            print(f"Available collections AFTER selecting database ({len(collections_after)}):")
             
             for idx, coll in enumerate(collections_after, 1):
                 print(f"{idx}. {coll}")
                 
-            # Usar esta lista para verificación
+            # Use this list for verification
             collections = collections_after
         except Exception as e:
-            print(f"Nota: No se pudo seleccionar la base de datos para verificar colecciones: {e}")
+            print(f"Note: Could not select database to check collections: {e}")
         
-        # Verificar si alguna variante de la colección objetivo existe
+        # Check if any variant of the target collection exists
         target_found = False
         for variant in COLLECTION_VARIANTS:
             if variant in collections:
-                print(f"\nColección objetivo encontrada como: '{variant}' ✓")
+                print(f"\nTarget collection found as: '{variant}' ✓")
                 target_found = True
                 break
                 
         if not target_found:
-            print(f"\n⚠️ Ninguna variante de la colección objetivo fue encontrada ⚠️")
-            print(f"Variantes buscadas: {COLLECTION_VARIANTS}")
+            print(f"\n⚠️ No variant of the target collection was found ⚠️")
+            print(f"Variants searched: {COLLECTION_VARIANTS}")
             
         return collections
     except Exception as e:
-        print(f"Error al listar colecciones: {e}")
+        print(f"Error listing collections: {e}")
         return []
 
 def check_collection_details(collection_name):
-    """Verifica los detalles de una colección específica."""
-    print_separator(f"DETALLES DE COLECCIÓN: {collection_name}")
+    """Checks the details of a specific collection."""
+    print_separator(f"COLLECTION DETAILS: {collection_name}")
     
     try:
         exists = utility.has_collection(collection_name)
-        print(f"¿Existe la colección? {exists}")
+        print(f"Does the collection exist? {exists}")
         
         if not exists:
             return False
             
-        # Intentar cargar la colección
+        # Try to load the collection
         try:
             collection = Collection(collection_name)
             schema = collection.schema
-            print(f"Nombre de la colección: {collection.name}")
-            print(f"Descripción: {collection.description}")
+            print(f"Collection name: {collection.name}")
+            print(f"Description: {collection.description}")
             
-            # Mostrar campos
-            print("\nCampos:")
+            # Show fields
+            print("\nFields:")
             for field in schema.fields:
                 print(f"- {field.name}: {field.dtype}")
                 if field.name == "embedding":
-                    print(f"  Dimensión: {field.dim}")
+                    print(f"  Dimension: {field.dim}")
                     
-            # Contar entidades
+            # Count entities
             try:
                 count = collection.num_entities
-                print(f"\nNúmero de entidades: {count}")
+                print(f"\nNumber of entities: {count}")
             except Exception as e:
-                print(f"Error al contar entidades: {e}")
+                print(f"Error counting entities: {e}")
                 
             return True
         except Exception as e:
-            print(f"Error al cargar la colección: {e}")
+            print(f"Error loading the collection: {e}")
             return False
     except Exception as e:
-        print(f"Error al verificar existencia de la colección: {e}")
+        print(f"Error checking collection existence: {e}")
         return False
 
 def try_search_in_collection(collection_name, limit=5):
-    """Intenta realizar una búsqueda simple en la colección."""
-    print_separator(f"PRUEBA DE BÚSQUEDA EN: {collection_name}")
+    """Attempts to perform a simple search in the collection."""
+    print_separator(f"SEARCH TEST IN: {collection_name}")
     
     try:
         collection = Collection(collection_name)
         
-        # Verificar si la colección está cargada
+        # Check if the collection is loaded
         try:
             collection.load()
-            print("Colección cargada correctamente")
+            print("Collection loaded successfully")
         except Exception as e:
-            print(f"Error al cargar la colección (puede que ya esté cargada): {e}")
+            print(f"Error loading the collection (it may already be loaded): {e}")
         
-        # Obtener dimensión del vector
+        # Get vector dimension
         schema = collection.schema
         embedding_field = next((field for field in schema.fields if field.name == "embedding"), None)
         
         if not embedding_field:
-            print("No se encontró campo 'embedding' en la colección")
+            print("No 'embedding' field found in the collection")
             return False
             
         dim = embedding_field.dim
-        print(f"Dimensión del vector: {dim}")
+        print(f"Vector dimension: {dim}")
         
-        # Vector de prueba (todo ceros)
+        # Test vector (all zeros)
         test_vector = [0.0] * dim
         
-        # Parámetros de búsqueda
+        # Search parameters
         search_params = {
             "metric_type": "COSINE",
             "params": {"nprobe": 10}
         }
         
-        # Determinar campos de salida
+        # Determine output fields
         field_names = [field.name for field in schema.fields]
         output_fields = [f for f in field_names if f not in ["embedding"]]
-        print(f"Campos de salida: {output_fields}")
+        print(f"Output fields: {output_fields}")
         
-        # Ejecutar búsqueda
-        print("Ejecutando búsqueda...")
+        # Execute search
+        print("Executing search...")
         results = collection.search(
             data=[test_vector],
             anns_field="embedding",
@@ -227,13 +227,13 @@ def try_search_in_collection(collection_name, limit=5):
             output_fields=output_fields
         )
         
-        # Mostrar resultados
-        print(f"\nResultados encontrados: {len(results[0])}")
+        # Show results
+        print(f"\nResults found: {len(results[0])}")
         for i, hit in enumerate(results[0]):
-            print(f"\nResultado #{i+1}:")
+            print(f"\nResult #{i+1}:")
             entity = hit.entity.to_dict()
             
-            # Formatear campos principales
+            # Format main fields
             if "text" in entity:
                 print(f"- text: {entity['text'][:100]}..." if len(entity['text']) > 100 else entity['text'])
             
@@ -243,41 +243,41 @@ def try_search_in_collection(collection_name, limit=5):
             if "source_id" in entity:
                 print(f"- source_id: {entity['source_id']}")
                 
-            # Mostrar puntuación
+            # Show score
             print(f"- score: {hit.score}")
             
         return True
     except Exception as e:
-        print(f"Error en la búsqueda: {e}")
+        print(f"Error in search: {e}")
         return False
 
 def main():
-    """Función principal."""
-    print("DIAGNÓSTICO DE MILVUS")
+    """Main function."""
+    print("MILVUS DIAGNOSTICS")
     print(f"Host: {MILVUS_HOST}")
-    print(f"Puerto: {MILVUS_PORT}")
-    print(f"Base de datos objetivo: {MILVUS_DATABASE}")
-    print(f"Colección objetivo: {TARGET_COLLECTION}")
+    print(f"Port: {MILVUS_PORT}")
+    print(f"Target database: {MILVUS_DATABASE}")
+    print(f"Target collection: {TARGET_COLLECTION}")
     
-    # Conectar a Milvus
+    # Connect to Milvus
     if not connect_to_milvus():
-        print("\n⚠️ No se pudo conectar a Milvus. Abortando diagnóstico.")
+        print("\n⚠️ Could not connect to Milvus. Aborting diagnostics.")
         return
     
-    # Verificar bases de datos
+    # Check databases
     databases = check_databases()
     
-    # Verificar colecciones
+    # Check collections
     collections = check_collections()
     
-    # Verificar detalles de cada variante de colección
+    # Check details of each collection variant
     for variant in COLLECTION_VARIANTS:
         if variant in collections:
             check_collection_details(variant)
             try_search_in_collection(variant)
     
-    print_separator("DIAGNÓSTICO COMPLETO")
-    print("Si necesitas ayuda para interpretar estos resultados, consulta:")
+    print_separator("DIAGNOSTICS COMPLETE")
+    print("If you need help interpreting these results, consult:")
     print("https://milvus.io/docs/troubleshooting.md")
 
 if __name__ == "__main__":
