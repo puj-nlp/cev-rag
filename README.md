@@ -1,62 +1,62 @@
-# Ventana a la Verdad: Chatbot para la Comisión de la Verdad de Colombia
+# Window to Truth: Chatbot for the Colombian Truth Commission
 
-Este proyecto es una aplicación de consulta sobre el conflicto colombiano utilizando la técnica RAG (Retrieval-Augmented Generation). La aplicación permite a los usuarios hacer preguntas sobre el conflicto armado en Colombia y recibir respuestas generadas con la ayuda de documentos relevantes recuperados de la base de datos de la Comisión de la Verdad.
+This project is a query application about the Colombian conflict using the RAG (Retrieval-Augmented Generation) technique. The application allows users to ask questions about the armed conflict in Colombia and receive answers generated with the help of relevant documents retrieved from the Truth Commission's database.
 
-## Estructura del proyecto
+## Project Structure
 
-- `rag-api/`: Backend con FastAPI
-- `rag-ui/`: Frontend con React
-- `MilvusVolumes/`: Almacenamiento persistente para la base de datos Milvus
+- `rag-api/`: Backend with FastAPI
+- `rag-ui/`: Frontend with React
+- `MilvusVolumes/`: Persistent storage for the Milvus database
 
-## Requisitos
+## Requirements
 
-- Docker y Docker Compose
-- Clave API de OpenAI
+- Docker and Docker Compose
+- OpenAI API key
 
-## Configuración
+## Configuration
 
-1. Copia el archivo `.env.example` a `.env`:
+1. Copy the `.env.example` file to `.env`:
    ```bash
    cp .env.example .env
    ```
 
-2. Edita el archivo `.env` y proporciona tu clave de API de OpenAI:
+2. Edit the `.env` file and provide your OpenAI API key:
    ```
-   OPENAI_API_KEY=tu_clave_api_de_openai
+   OPENAI_API_KEY=your_openai_api_key
    ```
 
-3. Si tienes datos personalizados para cargar en Milvus, asegúrate de que estén disponibles en el directorio `rag-api/data/`.
+3. If you have custom data to load into Milvus, make sure it's available in the `rag-api/data/` directory.
 
-## Iniciar la aplicación
+## Starting the Application
 
 ```bash
 docker-compose up --build
 ```
 
-La aplicación estará disponible en:
+The application will be available at:
 - Frontend: http://localhost:3000
 - API: http://localhost:8000
-- Documentación API: http://localhost:8000/docs
+- API Documentation: http://localhost:8000/docs
 
-## Carga de datos en Milvus
+## Loading Data into Milvus
 
-Si necesitas cargar datos en la base de datos Milvus, puedes ejecutar el siguiente comando después de que los contenedores estén funcionando:
+If you need to load data into the Milvus database, you can run the following command after the containers are running:
 
 ```bash
 docker-compose exec rag-api python -m scripts.build_milvus_db
 ```
 
-## Servicios
+## Services
 
-- **rag-api**: Backend con FastAPI que gestiona la lógica RAG y la comunicación con OpenAI y Milvus
-- **rag-ui**: Frontend con React que proporciona la interfaz de usuario
-- **milvus**: Base de datos vectorial para almacenar y buscar embeddings
+- **rag-api**: FastAPI backend that manages RAG logic and communication with OpenAI and Milvus
+- **rag-ui**: React frontend that provides the user interface
+- **milvus**: Vector database for storing and searching embeddings
 
-## Desarrollo
+## Development
 
 ### Backend (FastAPI)
 
-Para desarrollar localmente el backend:
+To develop the backend locally:
 
 ```bash
 cd rag-api
@@ -66,7 +66,7 @@ uvicorn main:app --reload
 
 ### Frontend (React)
 
-Para desarrollar localmente el frontend:
+To develop the frontend locally:
 
 ```bash
 cd rag-ui

@@ -254,8 +254,37 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
             # Buscar documentos similares
             abstract_results = get_documents_from_query(query_vec, abstract_collection)
             print(f"Búsqueda exitosa en colección {config.ABSTRACT_COLLECTION}, se encontraron {len(abstract_results)} resultados")
+            
+            # Mostrar detalles de los resultados para diagnóstico
+            print("\n--- DETALLES DE RESULTADOS ---")
+            for i, doc in enumerate(abstract_results[:3]):  # Solo mostrar los primeros 3 para no sobrecargar los logs
+                print(f"Documento {i+1}:")
+                
+                # Verificar contenido
+                content = doc.get('content', '')
+                if content:
+                    print(f"  - Contenido ({type(content).__name__}, len={len(content)}): {content[:100]}...")
+                else:
+                    print(f"  - Contenido: VACÍO")
+                
+                # Verificar metadata
+                metadata = doc.get('metadata', {})
+                print(f"  - Metadata ({type(metadata).__name__}, keys={list(metadata.keys()) if isinstance(metadata, dict) else 'N/A'}):")
+                if isinstance(metadata, dict) and metadata:
+                    for key, value in metadata.items():
+                        print(f"      - {key}: {value}")
+                else:
+                    print(f"      VACÍO o NO ES DICCIONARIO: {metadata}")
+                
+                # Verificar score
+                print(f"  - Score: {doc.get('score', 0)}")
+                
+                # Verificar todos los campos disponibles en el documento
+                print(f"  - Todos los campos disponibles: {list(doc.keys())}")
         except Exception as e:
             print(f"Error al buscar en colección {config.ABSTRACT_COLLECTION}: {e}")
+            import traceback
+            print(traceback.format_exc())
             abstract_results = []
             
             # Intentar con nombres alternativos de colección
@@ -288,7 +317,56 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
         top_results = all_results[:config.TOP_K]
         
         # Construir el contexto para OpenAI
-        context = "\n\n".join([doc["content"] for doc in top_results])
+        context_pieces = []
+        print("\n--- CONSTRUCCIÓN DE CONTEXTO ---")
+        for i, doc in enumerate(top_results):
+            # Primero, intentamos usar el campo content que debería haber sido extraído correctamente
+            content = doc.get("content", "")
+            source = "content"
+            
+            # Verificar directamente los campos originales si están disponibles
+            if not content and "original_fields" in doc:
+                if "text" in doc["original_fields"] and doc["original_fields"]["text"]:
+                    content = doc["original_fields"]["text"]
+                    source = "original_fields.text"
+                
+                # Si aún no hay contenido, probar con el título
+                if not content and "title" in doc["original_fields"] and doc["original_fields"]["title"]:
+                    content = f"Documento titulado: {doc['original_fields']['title']}"
+                    source = "original_fields.title"
+            
+            # Añadir metadatos importantes al contexto
+            metadata = doc.get("metadata", {})
+            meta_string = ""
+            if metadata.get("title"):
+                meta_string += f"Título: {metadata['title']}\n"
+            if metadata.get("source_id"):
+                meta_string += f"Fuente: {metadata['source_id']}\n"
+            if metadata.get("page"):
+                meta_string += f"Página: {metadata['page']}\n"
+            
+            # Combinar metadatos y contenido
+            full_content = ""
+            if meta_string:
+                full_content = f"{meta_string}\n{content}"
+            else:
+                full_content = content
+            
+            # Registrar lo que encontramos
+            if full_content:
+                print(f"Documento {i+1}: Añadiendo {len(full_content)} caracteres al contexto (fuente: {source})")
+                context_pieces.append(full_content)
+            else:
+                print(f"Documento {i+1}: No se encontró contenido para añadir al contexto")
+        
+        # Unir todas las piezas de contexto
+        context = "\n\n---\n\n".join(context_pieces)
+        print(f"Contexto total: {len(context)} caracteres")
+        
+        # Si no hay contexto, crear uno básico para evitar errores
+        if not context.strip():
+            print("ADVERTENCIA: No se encontró contexto útil en los documentos. Usando mensaje genérico.")
+            context = "No se encontró información relevante para esta pregunta en la base de datos."
         
         # Obtener historial de chat para proporcionar contexto de la conversación
         chat_history = [
@@ -296,14 +374,87 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
             for msg in chat_session.messages[-10:]  # Limitamos a las últimas 10 mensajes
         ]
         
-        # Generar respuesta
+        # Preparar referencias para incluirlas en la respuesta en formato académico
+        references = []
+        print("\n--- PREPARANDO REFERENCIAS ACADÉMICAS ---")
+        for i, doc in enumerate(top_results[:3]):  # Usar hasta 3 documentos como referencias
+            metadata = doc.get("metadata", {})
+            original = doc.get("original_fields", {})
+            
+            # Obtener el título y datos bibliográficos
+            title = metadata.get("title") or original.get("title") or "Documento sin título"
+            
+            # Intentar extraer información de tomo/volumen del título o source_id
+            source_id = metadata.get("source_id") or original.get("source_id") or ""
+            # Normalizar nombres de documentos para formato académico
+            if not source_id.startswith("Tomo") and "vol" not in source_id.lower():
+                # Intentar inferir si es un tomo o volumen basado en el título
+                if "tomo" in title.lower() or "vol" in title.lower():
+                    source_id = title  # Usar el título si parece contener información de tomo
+            
+            # Obtener número de página
+            page = metadata.get("page") or original.get("page") or ""
+            # Convertir page a string si es un número
+            if isinstance(page, (int, float)):
+                page = str(int(page))  # Convertir a entero y luego a string para eliminar decimales
+            
+            print(f"Referencia {i+1}: Título={title}, Fuente={source_id}, Página={page}")
+            
+            # Añadir esta referencia a la lista con formato académico
+            references.append({
+                "number": i+1,
+                "title": title,
+                "source_id": source_id,
+                "page": page,
+                "year": "2022",  # Año fijo para documentos de la Comisión de la Verdad
+                "publisher": "Colombia. Comisión de la Verdad",
+                "isbn": "978-958-53874-3-0"  # ISBN estándar para docs de la Comisión
+            })
+        
+        # Generar respuesta incluyendo el contexto y referencias
+        print(f"Generando respuesta con {len(context)} caracteres de contexto y {len(references)} referencias")
         answer = generate_answer(question, context, chat_history)
         
-        # Guardar la respuesta
+        # Ajustar la respuesta para asegurarnos de que incluya las referencias en formato académico
+        if references:
+            # Si ya existe la sección de Referencias, la reemplazamos; si no, la añadimos
+            if "Referencias" in answer:
+                # Encontrar dónde comienza la sección de Referencias
+                ref_index = answer.find("Referencias")
+                # Truncar la respuesta para eliminar cualquier contenido después de "Referencias"
+                answer = answer[:ref_index]
+            
+            # Crear la sección de Referencias en formato académico completo
+            refs_text = "\n\nReferencias\n\n"
+            for ref in references:
+                # Formato de referencia académica completa
+                title = ref['title'] or "Documento sin título"
+                source_id = ref['source_id'] or ""
+                page = ref['page'] or ""
+                
+                # Construir la referencia en formato académico
+                ref_line = f"{ref['number']}. {title}. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0"
+                
+                # Añadir información de fuente/tomo si está disponible
+                if source_id:
+                    ref_line += f". (Fuente: {source_id}"
+                    if page:
+                        ref_line += f", Página: {page}"
+                    ref_line += ")"
+                elif page:
+                    ref_line += f", p. {page}"
+                
+                refs_text += ref_line + "\n"
+            
+            # Añadir las referencias al final de la respuesta
+            answer = answer.strip() + "\n\n" + refs_text
+        
+        # Guardar la respuesta con referencias
         bot_message = Message(
             content=answer,
             is_bot=True,
-            timestamp=get_current_timestamp()
+            timestamp=get_current_timestamp(),
+            references=references
         )
         
         chat_session.messages.append(bot_message)

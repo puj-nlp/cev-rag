@@ -1,91 +1,76 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Container, IconButton, Drawer, List, ListItem, ListItemText, ListItemIcon, Box } from '@mui/material';
-import { Menu as MenuIcon, Chat as ChatIcon } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton } from '@mui/material';
+import { Link, useLocation } from 'react-router-dom';
+import { Diamond as DiamondIcon, QuestionMark } from '@mui/icons-material';
 
 const Header = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
+  const location = useLocation();
 
   return (
-    <>
-      <AppBar position="static">
-        <Container maxWidth="xl">
-          <Toolbar disableGutters>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={toggleDrawer}
-              sx={{ mr: 2, display: { md: 'none' } }}
+    <AppBar position="static" elevation={0} sx={{ backgroundColor: 'primary.main' }}>
+      <Container maxWidth="xl">
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+          {/* Logo y título */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <DiamondIcon sx={{ mr: 1, transform: 'rotate(45deg)' }} />
+            <Typography
+              variant="h6"
+              noWrap
+              component={Link}
+              to="/"
+              sx={{
+                fontWeight: 700,
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
             >
-              <MenuIcon />
+              Ventana a la Verdad
+            </Typography>
+          </Box>
+          
+          {/* Enlaces de navegación */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Button
+              component={Link}
+              to="/"
+              sx={{ 
+                mx: 1.5, 
+                color: 'white', 
+                opacity: location.pathname === '/' ? 1 : 0.7,
+                '&:hover': { opacity: 1, backgroundColor: 'rgba(255,255,255,0.1)' }
+              }}
+            >
+              Home
+            </Button>
+            <Button
+              component={Link}
+              to="/about"
+              sx={{ 
+                mx: 1.5, 
+                color: 'white', 
+                opacity: location.pathname === '/about' ? 1 : 0.7,
+                '&:hover': { opacity: 1, backgroundColor: 'rgba(255,255,255,0.1)' }
+              }}
+            >
+              About
+            </Button>
+            <IconButton 
+              color="inherit" 
+              sx={{ ml: 1.5 }}
+              component={Link}
+              to="/help"
+            >
+              <QuestionMark sx={{ fontSize: '1.2rem' }} />
             </IconButton>
-            
-            <Typography
-              variant="h6"
-              noWrap
-              component={Link}
-              to="/"
-              sx={{
-                mr: 2,
-                display: { xs: 'none', md: 'flex' },
-                fontWeight: 700,
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
-            >
-              Wildlife RAG Chat
-            </Typography>
-
-            <Typography
-              variant="h6"
-              noWrap
-              component={Link}
-              to="/"
-              sx={{
-                flexGrow: 1,
-                display: { xs: 'flex', md: 'none' },
-                fontWeight: 700,
-                color: 'inherit',
-                textDecoration: 'none',
-              }}
-            >
-              Wildlife RAG
-            </Typography>
-
-            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              <Button
-                component={Link}
-                to="/"
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                Chats
-              </Button>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer}
-      >
-        <List sx={{ width: 250 }}>
-          <ListItem button component={Link} to="/" onClick={toggleDrawer}>
-            <ListItemIcon>
-              <ChatIcon />
-            </ListItemIcon>
-            <ListItemText primary="Chats" />
-          </ListItem>
-        </List>
-      </Drawer>
-    </>
+            <Avatar 
+              alt="User Profile" 
+              src="/avatar.jpg" 
+              sx={{ ml: 2, width: 35, height: 35 }}
+            />
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 };
 
