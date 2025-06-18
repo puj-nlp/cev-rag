@@ -185,10 +185,10 @@ const ChatList = () => {
             height: '70vh'
           }}>
             <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-              ¡Bienvenido a Ventana a la Verdad!
+              Welcome to Window to Truth!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, textAlign: 'center', mb: 4 }}>
-              Explora testimonios de la Comisión de la Verdad de Colombia. Haz preguntas y obtén respuestas basadas en la información recopilada.
+              Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.
             </Typography>
             <Button 
               variant="contained" 

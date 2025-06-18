@@ -5,13 +5,13 @@ from models import ChatSession, Message
 
 def load_chats_from_file(file_path: str) -> Dict[str, ChatSession]:
     """
-    Carga los chats desde un archivo JSON.
+    Loads chats from a JSON file.
     
     Args:
-        file_path: Ruta al archivo JSON
+        file_path: Path to the JSON file
         
     Returns:
-        Dict[str, ChatSession]: Diccionario de chats
+        Dict[str, ChatSession]: Dictionary of chats
     """
     try:
         with open(file_path, "r") as f:
@@ -22,7 +22,7 @@ def load_chats_from_file(file_path: str) -> Dict[str, ChatSession]:
             messages = [Message(**msg) for msg in chat_data.get("messages", [])]
             chat_session = ChatSession(
                 id=chat_id,
-                title=chat_data.get("title", "Chat sin título"),
+                title=chat_data.get("title", "Untitled Chat"),
                 messages=messages,
                 created_at=chat_data.get("created_at"),
                 updated_at=chat_data.get("updated_at")
@@ -31,16 +31,16 @@ def load_chats_from_file(file_path: str) -> Dict[str, ChatSession]:
             
         return chats
     except (FileNotFoundError, json.JSONDecodeError):
-        # Si el archivo no existe o está mal formateado, devolver un diccionario vacío
+        # If the file doesn't exist or is malformed, return an empty dictionary
         return {}
 
 def save_chats_to_file(chats: Dict[str, ChatSession], file_path: str) -> None:
     """
-    Guarda los chats en un archivo JSON.
+    Saves chats to a JSON file.
     
     Args:
-        chats: Diccionario de chats
-        file_path: Ruta al archivo JSON
+        chats: Dictionary of chats
+        file_path: Path to the JSON file
     """
     chats_data = {}
     for chat_id, chat_session in chats.items():
@@ -51,16 +51,16 @@ def save_chats_to_file(chats: Dict[str, ChatSession], file_path: str) -> None:
 
 def generate_title_for_chat(question: str, answer: str) -> str:
     """
-    Genera un título para el chat basado en la primera pregunta y respuesta.
+    Generates a title for the chat based on the first question and response.
     
     Args:
-        question: Primera pregunta del usuario
-        answer: Primera respuesta del sistema
+        question: User's first question
+        answer: System's first response
         
     Returns:
-        str: Título generado
+        str: Generated title
     """
-    # Limitar la longitud de la pregunta para el título
+    # Limit the length of the question for the title
     max_length = 40
     if len(question) > max_length:
         title = question[:max_length] + "..."
