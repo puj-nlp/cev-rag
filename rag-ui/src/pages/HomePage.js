@@ -91,14 +91,14 @@ const HomePage = () => {
           </Box>
         </Grid>
         
-        {/* Columna derecha - Contenido principal */}
+        {/* Right column - Main content */}
         <Grid item xs={12} md={9}>
           <Box sx={{ textAlign: 'center', mt: 8, mb: 6 }}>
             <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
-              ¡Bienvenido a Ventana a la Verdad!
+              Welcome to Window to Truth!
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto', mb: 5 }}>
-              Explora los testimonios de la Comisión de la Verdad de Colombia. Haz preguntas sobre los testimonios y obtén respuestas basadas en la información recopilada.
+              Explore testimonies from Colombia's Truth Commission. Ask questions about the testimonies and get answers based on the compiled information.
             </Typography>
           </Box>
           

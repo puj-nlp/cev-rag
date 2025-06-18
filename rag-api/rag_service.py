@@ -16,51 +16,51 @@ connections.connect(
 
 print("Successfully connected to Milvus")
 
-# Función para diagnosticar la estructura de la colección Milvus
+# Function to diagnose the Milvus collection structure
 def diagnose_milvus_collection():
     try:
-        print("\n--- DIAGNÓSTICO DE MILVUS ---")
+        print("\n--- MILVUS DIAGNOSTICS ---")
         
-        # Listar todas las colecciones
+        # List all collections
         from pymilvus import utility
         collections = utility.list_collections()
-        print(f"Colecciones disponibles: {collections}")
+        print(f"Available collections: {collections}")
         
-        # Tratar de acceder a la colección principal
+        # Try to access the main collection
         try:
             collection_name = config.ABSTRACT_COLLECTION
-            print(f"\nVerificando colección: {collection_name}")
+            print(f"\nVerifying collection: {collection_name}")
             
             collection = Collection(name=collection_name)
             
-            # Obtener información del schema
+            # Get schema information
             schema = collection.schema
-            print(f"Schema de la colección: {schema}")
+            print(f"Collection schema: {schema}")
             
-            # Listar campos
+            # List fields
             fields = [field.name for field in schema.fields]
-            print(f"Campos disponibles: {fields}")
+            print(f"Available fields: {fields}")
             
-            # Verificar cantidad de datos
+            # Verify data quantity
             entity_count = collection.num_entities
-            print(f"Número de entidades: {entity_count}")
+            print(f"Number of entities: {entity_count}")
             
-            # Si hay datos, intentar obtener algunas muestras
+            # If there is data, try to get some samples
             if entity_count > 0:
-                print("\nIntentando obtener muestras de datos:")
+                print("\nTrying to obtain data samples:")
                 
-                # Cargar la colección
+                # Load the collection
                 collection.load()
                 
-                # Realizar una búsqueda aleatoria
+                # Perform a random search
                 import random
                 random_vec = [random.random() for _ in range(config.EMBEDDING_DIMENSION)]
                 
-                # Usar todos los campos excepto embedding
+                # Use all fields except embedding
                 output_fields = [f for f in fields if f != "embedding"]
-                print(f"Campos a consultar: {output_fields}")
+                print(f"Fields to query: {output_fields}")
                 
-                # Hacer una búsqueda
+                # Perform a search
                 results = collection.search(
                     data=[random_vec],
                     anns_field="embedding",
@@ -69,32 +69,32 @@ def diagnose_milvus_collection():
                     output_fields=output_fields
                 )
                 
-                # Mostrar resultados
-                print(f"Resultados encontrados: {len(results[0])}")
+                # Show results
+                print(f"Results found: {len(results[0])}")
                 for i, hit in enumerate(results[0]):
-                    print(f"\nDocumento {i+1}:")
+                    print(f"\nDocument {i+1}:")
                     doc_dict = hit.entity.to_dict()
-                    print(f"Campos disponibles en el resultado: {list(doc_dict.keys())}")
+                    print(f"Fields available in result: {list(doc_dict.keys())}")
                     
-                    # Mostrar algunos valores
+                    # Show some values
                     for key, value in doc_dict.items():
-                        # Limitar la longitud para campos largos
+                        # Limit length for long fields
                         if isinstance(value, str) and len(value) > 100:
                             print(f"  - {key}: {value[:100]}...")
                         else:
                             print(f"  - {key}: {value}")
             
         except Exception as e:
-            print(f"Error verificando colección {collection_name}: {e}")
+            print(f"Error verifying collection {collection_name}: {e}")
             import traceback
             print(traceback.format_exc())
     
     except Exception as e:
-        print(f"Error en diagnóstico general: {e}")
+        print(f"Error in general diagnosis: {e}")
         import traceback
         print(traceback.format_exc())
 
-# Ejecutar diagnóstico al inicio
+# Execute diagnostics at startup
 diagnose_milvus_collection()
 
 # Verify database availability and try to select the correct database
@@ -303,22 +303,22 @@ def get_documents_from_query(query_vec: List[float], collection: Collection, top
             print(f"Vector expanded to {collection_vector_dim} dimensions")
     
     # Configure output fields based on the schema we know exists in Milvus
-    print(f"Detectando campos en la colección. Campos disponibles: {field_names}")
+    print(f"Detecting fields in the collection. Available fields: {field_names}")
     
-    # Para la colección source_abstract, sabemos que estos son los campos que necesitamos
+    # For the source_abstract collection, we know these are the fields we need
     expected_fields = ["id", "text", "title", "type", "link", "source_id", "page"]
     
-    # Filtrar solo los campos que existen en la colección
+    # Filter only the fields that exist in the collection
     output_fields = [field for field in expected_fields if field in field_names and field != "id"]
     
-    # Si por alguna razón no se encontraron los campos esperados, incluir todos excepto embedding
+    # If for some reason the expected fields were not found, include all except embedding
     if not output_fields:
-        print("ADVERTENCIA: No se encontraron los campos esperados. Incluyendo todos excepto 'embedding'")
+        print("WARNING: Expected fields not found. Including all except 'embedding'")
         output_fields = [f for f in field_names if f not in ["embedding"]]
     
-    print(f"Campos de salida finales: {output_fields}")
+    print(f"Final output fields: {output_fields}")
     
-    print(f"Ejecutando búsqueda en Milvus con los siguientes parámetros:")
+    print(f"Executing Milvus search with the following parameters:")
     print(f"  - Collection: {collection.name}")
     print(f"  - Vector dimension: {len(query_vec)}")
     print(f"  - Output fields: {output_fields}")
@@ -332,14 +332,14 @@ def get_documents_from_query(query_vec: List[float], collection: Collection, top
         output_fields=output_fields
     )
     
-    # Debug: Verifiquemos la estructura de los resultados
-    print(f"Tipo de resultados: {type(results)}")
-    print(f"Número de resultados: {len(results)}")
-    print(f"Estructura del primer conjunto de resultados: {type(results[0])}")
-    print(f"Número de hits en primer conjunto: {len(results[0])}")
+    # Debug: Let's verify the structure of the results
+    print(f"Results type: {type(results)}")
+    print(f"Number of results: {len(results)}")
+    print(f"Structure of first result set: {type(results[0])}")
+    print(f"Number of hits in first set: {len(results[0])}")
     
-    print(f"Campos disponibles en la colección: {field_names}")
-    print(f"Campos de salida configurados: {output_fields}")
+    print(f"Available fields in collection: {field_names}")
+    print(f"Configured output fields: {output_fields}")
     
     documents = []
     for hit in results[0]:
@@ -347,19 +347,19 @@ def get_documents_from_query(query_vec: List[float], collection: Collection, top
         doc_dict = hit.entity.to_dict()
         print(f"Document dictionary from Milvus: {doc_dict}")
         
-        # Basado en el esquema conocido de source_abstract
-        # El campo principal de contenido es 'text'
+        # Based on the known schema of source_abstract
+        # The main content field is 'text'
         content = doc_dict.get('text', '')
         
-        # Si el campo text está vacío, verificar si hay otros campos con contenido
+        # If the text field is empty, check if there are other fields with content
         if not content:
-            print("ADVERTENCIA: Campo 'text' vacío, comprobando valores en todos los campos")
-            # Mostrar todos los campos y sus valores
+            print("WARNING: Empty 'text' field, checking values in all fields")
+            # Show all fields and their values
             for field_name, field_value in doc_dict.items():
                 if field_name != 'embedding' and field_value:
-                    print(f"  - Campo '{field_name}' tiene valor: {str(field_value)[:50]}...")
+                    print(f"  - Field '{field_name}' has value: {str(field_value)[:50]}...")
                     
-        # Estructurar los metadatos
+        # Structure the metadata
         metadata = {
             "source_id": doc_dict.get('source_id', ''),
             "link": doc_dict.get('link', ''),
@@ -369,30 +369,28 @@ def get_documents_from_query(query_vec: List[float], collection: Collection, top
         }
         
         # Depurar valores
-        print(f"Contenido extraído: {str(content)[:100]}..." if content else "Contenido: VACÍO")
-        print(f"Metadatos extraídos: {metadata}")
+        print(f"Extracted content: {str(content)[:100]}..." if content else "Content: EMPTY")
+        print(f"Extracted metadata: {metadata}")
         
-        # Si el contenido sigue vacío después de todas las verificaciones,
-        # usar el título como último recurso
+        # If content is still empty after all checks,
+        # use the title as a last resort
         if not content and doc_dict.get('title'):
-            content = f"Título del documento: {doc_dict.get('title')}"
-            print(f"Usando título como contenido: {content}")
+            content = f"Document title: {doc_dict.get('title')}"
+            print(f"Using title as content: {content}")
         
-        # Asegurarse de que tenemos algún contenido
+        # Ensure we have some content
         if not content:
-            content = "No se pudo extraer contenido de este documento."
-            print("ADVERTENCIA: No se pudo obtener contenido del documento")
+            content = "Could not extract content from this document."
+            print("WARNING: Could not get content from document")
         
-        # Añadir el documento procesado a la lista de resultados
+        # Add the processed document to the results list
         documents.append({
             "content": content,
             "metadata": metadata,
             "score": hit.score,
-            # Incluir también los campos originales para depuración
+            # Also include original fields for debugging
             "original_fields": doc_dict
         })
-        
-        # La adición del documento se hace en el bloque anterior
     
     return documents
 
@@ -409,26 +407,35 @@ def generate_answer(question: str, context: str, chat_history: List[Dict]) -> st
         str: Generated answer with academic formatting and references
     """
     messages = [
-        {"role": "system", "content": """Eres un investigador académico especializado en el conflicto colombiano y la Comisión de la Verdad. Genera respuestas detalladas y rigurosas basadas en la información proporcionada. Sigue estas pautas específicas:
+        {"role": "system", "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate detailed and rigorous responses based EXCLUSIVELY on the information provided. Follow these specific guidelines:
 
-1. FORMATO ACADÉMICO ESTRICTO:
-   - Comienza con una "Introducción" clara que presente el tema general.
-   - Utiliza subtítulos en negrita para organizar la información por regiones, temas o conceptos.
-   - Cuando menciones datos específicos, SIEMPRE incluye la cita en formato parentético al final de la oración: (Fuente: [Título del documento], Página: [número]).
-   - Termina con una "Conclusión" que sintetice los puntos principales.
+1. STRICT ACADEMIC FORMAT:
+   - Begin with a clear "Introduction" that presents the general topic.
+   - Use bold subtitles to organize information by regions, themes, or concepts.
+   - When mentioning specific data, ALWAYS include the citation in IEEE format [number] at the end of the sentence.
+   - End with a "Conclusion" that synthesizes the main points.
 
-2. CITAS Y REFERENCIAS:
-   - Cita ESPECÍFICAMENTE páginas y fuentes exactas de los documentos.
-   - Usa el formato (Fuente: [Título exacto], Página: [número]) para cada cita.
-   - Al final, escribe el encabezado "Referencias" para que se añada la bibliografía completa.
+2. CITATIONS AND REFERENCES:
+   - SPECIFICALLY cite pages and exact sources from the documents.
+   - Use the format [number] for in-text citations.
+   - At the end, include a "References" section with the complete format: [number] Document title, page X.
 
-3. CONTENIDO Y TONO:
-   - Trata los temas con rigor académico y sensibilidad debido a la naturaleza del conflicto.
-   - Utiliza lenguaje preciso, objetivo y formal.
-   - Proporciona detalles concretos: cifras, nombres de regiones específicas, y hechos verificables.
-   - Si la información proporcionada es insuficiente, indícalo claramente y sugiere qué datos adicionales serían necesarios.
+3. CONTENT, ETHICS, AND TONE:
+   - Treat topics with academic rigor and ethical sensitivity due to the nature of the conflict.
+   - DO NOT reveal names of victims, specific locations of sensitive events, or details that could endanger individuals or communities.
+   - Use precise, objective, and formal language; avoid emotionally charged terms.
+   - Base your responses EXCLUSIVELY on the provided information; do not make assumptions.
+   - Maintain neutrality and avoid bias towards any actor in the conflict.
 
-Tu respuesta debe ser estructurada, académica y rica en datos específicos, similar a un informe formal de la Comisión de la Verdad."""}
+4. RESPONSIBILITY AND ATTRIBUTION:
+   - Focus on systemic factors, institutional roles, and collective responsibility rather than blaming specific individuals.
+   - Analyze the broader context and the interaction of various actors in the conflict.
+
+5. INFORMATION MANAGEMENT:
+   - If the requested information is not available in the sources, clearly indicate it.
+   - If sources present conflicts or ambiguities, acknowledge it and present the different perspectives.
+
+Your answer should be structured, academic, and rich in specific data, similar to a formal report from the Truth Commission."""}
     ]
     
     # Add chat history (include only a limited amount to keep context focused)
@@ -439,22 +446,22 @@ Tu respuesta debe ser estructurada, académica y rica en datos específicos, sim
     
     # Structure the prompt to encourage a high-quality academic response
     content_prompt = f"""
-Por favor, genera una respuesta académica completa a la siguiente pregunta sobre el conflicto colombiano. 
-Utiliza ÚNICAMENTE la información proporcionada en el contexto y cita apropiadamente las fuentes.
+Please generate a complete academic response to the following question about the Colombian conflict.
+Use ONLY the information provided in the context and appropriately cite the sources.
 
-PREGUNTA:
+QUESTION:
 {question}
 
-CONTEXTO DISPONIBLE (cita estas fuentes específicamente):
+AVAILABLE CONTEXT (cite these sources specifically):
 {context}
 
-INSTRUCCIONES ESPECIALES:
-1. Estructura tu respuesta con una "Introducción" clara, secciones con subtítulos en negrita, y una "Conclusión".
-2. IMPORTANTE: Cita las fuentes específicas usando el formato: (Fuente: [Título], Página: [número]) después de cada dato o afirmación.
-3. Incluye datos concretos, nombres específicos de regiones, y cifras exactas cuando estén disponibles.
-4. Al final de tu respuesta, añade el encabezado "Referencias" para indicar donde debe ir la bibliografía completa.
+SPECIAL INSTRUCTIONS:
+1. Structure your response with a clear "Introduction", sections with bold subtitles, and a "Conclusion".
+2. IMPORTANT: Cite specific sources using the format: (Source: [Title], Page: [number]) after each data point or assertion.
+3. Include concrete data, specific names of regions, and exact figures when available.
+4. At the end of your response, add the "References" header to indicate where the complete bibliography should go.
 
-Tu respuesta debe ser rigurosa, bien estructurada y académicamente fundamentada.
+Your answer must be rigorous, well-structured, and academically grounded.
 """
     
     messages.append({"role": "user", "content": content_prompt})
@@ -462,8 +469,8 @@ Tu respuesta debe ser rigurosa, bien estructurada y académicamente fundamentada
     response = client.chat.completions.create(
         model=config.COMPLETION_MODEL,
         messages=messages,
-        temperature=0.3,  # Menor temperatura para respuestas más consistentes y precisas
-        max_tokens=800    # Aumentar el límite para permitir respuestas más detalladas
+        temperature=0.3,  # Lower temperature for more consistent and precise responses
+        max_tokens=800    # Increase the token limit to allow for more detailed responses
     )
     
     return response.choices[0].message.content

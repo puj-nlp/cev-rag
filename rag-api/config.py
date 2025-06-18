@@ -12,7 +12,7 @@ API_VERSION = "1.0.0"
 # OpenAI configurations
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 EMBEDDING_MODEL = "text-embedding-3-small"  # Embedding model that generates 1536-dimensional vectors
-COMPLETION_MODEL = "gpt-3.5-turbo-0125"     # Specific and stable version
+COMPLETION_MODEL = "gpt-4o-mini"            # More recent model with better capabilities for complex topics
 EMBEDDING_DIMENSION = 1536                  # Dimension of the embedding vector used in Milvus
 
 # Milvus configurations

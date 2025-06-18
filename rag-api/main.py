@@ -2,13 +2,14 @@ import json
 import uuid
 import datetime
 from typing import List, Dict, Optional, Any
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pymilvus import Collection, db
 
 import config
 from models import ChatSession, Message, QuestionRequest, ChatRequest, ErrorResponse
 from rag_service import get_embedding, get_abstract_collection, get_documents_from_query, generate_answer
+from chat_with_tools import generate_answer_with_tools
 
 app = FastAPI(
     title=config.API_TITLE,
@@ -25,34 +26,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Verificar las colecciones de Milvus al inicio
+# Verify Milvus collections at startup
 def verify_milvus_collections():
     from pymilvus import utility, Collection, connections, db
     import time
     
-    # Intentar conectar varias veces para dar tiempo al servicio Milvus para iniciar
+    # Try connecting multiple times to give the Milvus service time to start
     max_attempts = 5
     for attempt in range(max_attempts):
         # Al principio de cada intento, limpiar la configuración de colección
         # para asegurarnos de que se realiza el diagnóstico completo
         config.ABSTRACT_COLLECTION = "source_abstract"
         
-        # Intentar seleccionar la base de datos correcta
+        # Try to select the correct database
         try:
             db.using_database(config.MILVUS_DATABASE)
-            print(f"Base de datos {config.MILVUS_DATABASE} seleccionada para verificación")
+            print(f"Database {config.MILVUS_DATABASE} selected for verification")
         except Exception as e:
-            print(f"Nota: No se pudo seleccionar la base de datos {config.MILVUS_DATABASE}: {e}")
-            print("Esto es normal en versiones antiguas de Milvus o en Milvus Standalone")
+            print(f"Note: Could not select database {config.MILVUS_DATABASE}: {e}")
+            print("This is normal in older versions of Milvus or in Milvus Standalone")
         try:
-            print(f"Verificando conexión a Milvus (intento {attempt+1}/{max_attempts})...")
+            print(f"Verifying Milvus connection (attempt {attempt+1}/{max_attempts})...")
             
-            # Verificar la conexión a Milvus
+            # Verify the Milvus connection
             try:
                 conn_status = connections.get_connection_addr("default")
-                print(f"Estado de conexión Milvus: {conn_status}")
+                print(f"Milvus connection status: {conn_status}")
             except Exception as e:
-                print(f"Error al verificar estado de conexión: {e}")
+                print(f"Error checking connection status: {e}")
                 # Intentar reconectar si hay algún problema
                 connections.connect(alias="default", host=config.MILVUS_HOST, port=config.MILVUS_PORT)
             
@@ -62,12 +63,12 @@ def verify_milvus_collections():
                 print(f"Bases de datos disponibles en Milvus: {all_databases}")
                 
                 if config.MILVUS_DATABASE not in all_databases:
-                    print(f"¡ADVERTENCIA! Base de datos {config.MILVUS_DATABASE} no encontrada en: {all_databases}")
+                    print(f"WARNING! Database {config.MILVUS_DATABASE} not found in: {all_databases}")
                 else:
-                    print(f"Base de datos {config.MILVUS_DATABASE} encontrada")
+                    print(f"Database {config.MILVUS_DATABASE} found")
             except Exception as e:
                 print(f"Error al listar bases de datos: {e}")
-                print("La versión de PyMilvus o Milvus instalada puede no soportar múltiples bases de datos")
+                print("The installed PyMilvus or Milvus version may not support multiple databases")
             
             # Listar todas las colecciones disponibles
             try:
@@ -78,38 +79,38 @@ def verify_milvus_collections():
                 target_found = False
                 for collection_name in config.ALTERNATIVE_COLLECTION_NAMES:
                     if collection_name in all_collections:
-                        print(f"¡Colección encontrada con nombre: {collection_name}!")
+                        print(f"Collection found with name: {collection_name}!")
                         config.ABSTRACT_COLLECTION = collection_name
                         target_found = True
                         break
                 
                 if not target_found:
-                    print(f"ADVERTENCIA: No se encontró la colección en ninguna variante de nombre: {config.ALTERNATIVE_COLLECTION_NAMES}")
+                    print(f"WARNING: Collection not found in any name variant: {config.ALTERNATIVE_COLLECTION_NAMES}")
             except Exception as e:
                 print(f"Error al listar colecciones: {e}")
             
-            # Intentar verificar y acceder a la colección con cada formato de nombre posible
+            # Try to verify and access the collection with each possible name format
             collection_candidates = config.ALTERNATIVE_COLLECTION_NAMES + [f"{config.MILVUS_DATABASE}.{config.ABSTRACT_COLLECTION}"]
             for collection_name in collection_candidates:
                 try:
                     has_collection = utility.has_collection(collection_name)
-                    print(f"Colección {collection_name} existe: {has_collection}")
+                    print(f"Collection {collection_name} exists: {has_collection}")
                     
                     if has_collection:
                         try:
-                            print(f"Intentando acceder a la colección: {collection_name}")
+                            print(f"Attempting to access collection: {collection_name}")
                             abstract_collection = Collection(name=collection_name)
                             schema = abstract_collection.schema
                             embedding_field = next((field for field in schema.fields if field.name == "embedding"), None)
                             if embedding_field:
                                 print(f"Dimensión de embedding en {collection_name}: {embedding_field.dim}")
                                 if embedding_field.dim != config.EMBEDDING_DIMENSION:
-                                    print(f"ADVERTENCIA: La dimensión configurada ({config.EMBEDDING_DIMENSION}) no coincide con la colección ({embedding_field.dim})")
+                                    print(f"WARNING: Configured dimension ({config.EMBEDDING_DIMENSION}) does not match the collection ({embedding_field.dim})")
                                     # Actualizar la dimensión configurada para que coincida con la colección
                                     config.EMBEDDING_DIMENSION = embedding_field.dim
                                     print(f"Actualizada la dimensión configurada a: {config.EMBEDDING_DIMENSION}")
                                 
-                                # Contar entidades para verificar que hay datos
+                                # Count entities to verify there is data
                                 entity_count = abstract_collection.num_entities
                                 print(f"Número de entidades en {collection_name}: {entity_count}")
                                 
@@ -119,25 +120,25 @@ def verify_milvus_collections():
                                     print(f"Usando colección {collection_name} con {entity_count} entidades")
                                     break
                         except Exception as e:
-                            print(f"Error al verificar {collection_name}: {e}")
+                            print(f"Error verifying {collection_name}: {e}")
                 except Exception as e:
-                    print(f"Error al verificar existencia de {collection_name}: {e}")
+                    print(f"Error verifying existence of {collection_name}: {e}")
             
             # Si llegamos aquí, hemos podido conectar correctamente
             break
         except Exception as e:
             if attempt < max_attempts - 1:
-                print(f"Error al verificar conexión a Milvus: {e}")
-                print(f"Reintentando en 5 segundos...")
+                print(f"Error verifying Milvus connection: {e}")
+                print(f"Retrying in 5 seconds...")
                 time.sleep(5)
             else:
-                print(f"No se pudo verificar la conexión a Milvus después de {max_attempts} intentos.")
+                print(f"Could not verify Milvus connection after {max_attempts} attempts.")
 
 # Ejecutar la verificación en segundo plano para no bloquear el inicio de la API
 import threading
 threading.Thread(target=verify_milvus_collections, daemon=True).start()
 
-# Almacenamiento en memoria para chats (en producción usaríamos una base de datos)
+# In-memory storage for chats (in production, we would use a database)
 chats: Dict[str, ChatSession] = {}
 
 
@@ -195,17 +196,22 @@ async def delete_chat(chat_id: str):
 
 
 @app.post("/chats/{chat_id}/messages", response_model=Message)
-async def add_message(chat_id: str, question_request: QuestionRequest):
+async def add_message(
+    chat_id: str, 
+    question_request: QuestionRequest, 
+    use_tools: bool = Query(True, description="Whether to use the tool calling approach to get more specific context")
+):
     """
-    Procesa una pregunta del usuario y genera una respuesta usando RAG.
+    Processes a user's question and generates a response using RAG.
+    Optionally uses the tool calling approach for more specific questions.
     """
     if chat_id not in chats:
-        raise HTTPException(status_code=404, detail="Chat no encontrado")
+        raise HTTPException(status_code=404, detail="Chat not found")
     
     question = question_request.question
     chat_session = chats[chat_id]
     
-    # Registrar la pregunta del usuario
+    # Register the user's question
     user_message = Message(
         content=question,
         is_bot=False,
@@ -214,27 +220,137 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
     chat_session.messages.append(user_message)
     
     try:
-        # Obtener el embedding de la pregunta
+        # If tool calling is requested, use the advanced approach
+        if use_tools:
+            print(f"Using Tool Calling approach for the question: {question}")
+            
+            # Get chat history to provide conversation context
+            chat_history = [
+                {"content": msg.content, "is_bot": msg.is_bot}
+                for msg in chat_session.messages[-10:]  # Limit to the last 10 messages
+            ]
+            
+            # Generate response using the tool calling approach
+            tool_response = generate_answer_with_tools(question, chat_history)
+            
+            # Extract references from the contexts used in tool calling
+            references = []
+            contexts_used = tool_response.get("contexts", [])
+            
+            print(f"\n--- PREPARING REFERENCES FROM TOOL CONTEXTS ---")
+            print(f"Number of contexts found: {len(contexts_used)}")
+            
+            # Try to use documents collected during tool execution first
+            all_documents = []
+            for context in contexts_used:
+                documents = context.get("documents", [])
+                all_documents.extend(documents)
+            
+            # If we have documents from the tool execution, use those
+            if all_documents:
+                print(f"Using {len(all_documents)} documents from tool execution")
+                # Sort by score and take the top 3
+                all_documents.sort(key=lambda x: x.get("score", 0), reverse=True)
+                top_documents = all_documents[:3]
+            else:
+                # Fallback: Get documents using direct search
+                print("No documents found in tool contexts, performing fallback search")
+                query_vec = get_embedding(question)
+                try:
+                    # First, try to select the correct database
+                    try:
+                        db.using_database(config.MILVUS_DATABASE)
+                        print(f"Database {config.MILVUS_DATABASE} selected for reference extraction")
+                    except Exception as e:
+                        print(f"Note: Could not select database {config.MILVUS_DATABASE}: {e}")
+                    
+                    abstract_collection = get_abstract_collection()
+                    fallback_results = get_documents_from_query(query_vec, abstract_collection)
+                    top_documents = []
+                    
+                    for doc in fallback_results[:3]:
+                        metadata = doc.get("metadata", {})
+                        original = doc.get("original_fields", {})
+                        
+                        top_documents.append({
+                            "title": metadata.get("title") or original.get("title") or "Untitled document",
+                            "page": metadata.get("page") or original.get("page") or "",
+                            "source_id": metadata.get("source_id") or original.get("source_id") or "",
+                            "metadata": metadata,
+                            "original_fields": original,
+                            "score": doc.get("score", 0)
+                        })
+                        
+                except Exception as e:
+                    print(f"Error in fallback search for references: {e}")
+                    top_documents = []
+            
+            # Process documents to create references
+            for i, doc in enumerate(top_documents):
+                title = doc.get("title", "Untitled document")
+                source_id = doc.get("source_id", "")
+                page = doc.get("page", "")
+                
+                # Normalize document names for academic format
+                if not source_id.startswith("Tomo") and "vol" not in source_id.lower():
+                    # Try to infer if it's a volume based on the title
+                    if "tomo" in title.lower() or "vol" in title.lower():
+                        source_id = title  # Use title if it seems to contain volume information
+                
+                # Convert page to string if it's a number
+                if isinstance(page, (int, float)):
+                    page = str(int(page))  # Convert to int then string to remove decimals
+                
+                print(f"Tool Reference {i+1}: Title={title}, Source={source_id}, Page={page}")
+                
+                # Add this reference to the list with academic format
+                references.append({
+                    "number": i+1,
+                    "title": title,
+                    "source_id": source_id,
+                    "page": page,
+                    "year": "2022",  # Fixed year for Truth Commission documents
+                    "publisher": "Colombia. Comisión de la Verdad",
+                    "isbn": "978-958-53874-3-0"  # Standard ISBN for Commission docs
+                })
+            
+            print(f"Generated {len(references)} references for tool-based response")
+            
+            # Create response message
+            bot_message = Message(
+                content=tool_response["content"],
+                is_bot=True,
+                timestamp=get_current_timestamp(),
+                references=references
+            )
+            
+            chat_session.messages.append(bot_message)
+            chat_session.updated_at = get_current_timestamp()
+            
+            return bot_message
+        
+        # If not using tool calling, proceed with the standard approach
+        # Get the question embedding
         query_vec = get_embedding(question)
         
-        # Inicializar listas de resultados
+        # Initialize results lists
         abstract_results = []
         colombia_results = []
         
-        # Primero intentamos seleccionar la base de datos correcta
+        # First, we try to select the correct database
         try:
             db.using_database(config.MILVUS_DATABASE)
-            print(f"Base de datos {config.MILVUS_DATABASE} seleccionada para búsqueda")
+            print(f"Database {config.MILVUS_DATABASE} selected for search")
         except Exception as e:
-            print(f"Nota: No se pudo seleccionar la base de datos {config.MILVUS_DATABASE}: {e}")
-            print("Intentaremos acceder a la colección de todos modos")
+            print(f"Note: Could not select database {config.MILVUS_DATABASE}: {e}")
+            print("We will try to access the collection anyway")
         
         # Buscar en la colección source_abstract (principal)
         try:
-            print(f"Intentando buscar en colección principal {config.ABSTRACT_COLLECTION}...")
+            print(f"Attempting to search in main collection {config.ABSTRACT_COLLECTION}...")
             abstract_collection = get_abstract_collection()
             
-            # Verificar la dimensión del embedding en la colección
+            # Verify the embedding dimension in the collection
             schema = abstract_collection.schema
             embedding_field = next((field for field in schema.fields if field.name == "embedding"), None)
             if embedding_field:
@@ -251,35 +367,35 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
                         print("Regenerando embedding con la dimensión correcta...")
                         query_vec = get_embedding(question)
             
-            # Buscar documentos similares
+            # Search for similar documents
             abstract_results = get_documents_from_query(query_vec, abstract_collection)
-            print(f"Búsqueda exitosa en colección {config.ABSTRACT_COLLECTION}, se encontraron {len(abstract_results)} resultados")
+            print(f"Successful search in collection {config.ABSTRACT_COLLECTION}, found {len(abstract_results)} results")
             
-            # Mostrar detalles de los resultados para diagnóstico
-            print("\n--- DETALLES DE RESULTADOS ---")
+            # Show result details for diagnosis
+            print("\n--- RESULT DETAILS ---")
             for i, doc in enumerate(abstract_results[:3]):  # Solo mostrar los primeros 3 para no sobrecargar los logs
-                print(f"Documento {i+1}:")
+                print(f"Document {i+1}:")
                 
-                # Verificar contenido
+                # Verify content
                 content = doc.get('content', '')
                 if content:
-                    print(f"  - Contenido ({type(content).__name__}, len={len(content)}): {content[:100]}...")
+                    print(f"  - Content ({type(content).__name__}, len={len(content)}): {content[:100]}...")
                 else:
-                    print(f"  - Contenido: VACÍO")
+                    print(f"  - Content: EMPTY")
                 
-                # Verificar metadata
+                # Verify metadata
                 metadata = doc.get('metadata', {})
                 print(f"  - Metadata ({type(metadata).__name__}, keys={list(metadata.keys()) if isinstance(metadata, dict) else 'N/A'}):")
                 if isinstance(metadata, dict) and metadata:
                     for key, value in metadata.items():
                         print(f"      - {key}: {value}")
                 else:
-                    print(f"      VACÍO o NO ES DICCIONARIO: {metadata}")
+                    print(f"      EMPTY or NOT A DICTIONARY: {metadata}")
                 
-                # Verificar score
+                # Verify score
                 print(f"  - Score: {doc.get('score', 0)}")
                 
-                # Verificar todos los campos disponibles en el documento
+                # Verify all available fields in the document
                 print(f"  - Todos los campos disponibles: {list(doc.keys())}")
         except Exception as e:
             print(f"Error al buscar en colección {config.ABSTRACT_COLLECTION}: {e}")
@@ -293,59 +409,59 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
                     continue  # Ya lo intentamos
                     
                 try:
-                    print(f"Intentando con nombre alternativo: {collection_name}")
+                    print(f"Trying with alternative name: {collection_name}")
                     alt_collection = Collection(name=collection_name)
                     alt_results = get_documents_from_query(query_vec, alt_collection)
-                    print(f"Búsqueda exitosa en colección alternativa {collection_name}, se encontraron {len(alt_results)} resultados")
+                    print(f"Successful search in alternative collection {collection_name}, found {len(alt_results)} results")
                     abstract_results = alt_results
                     break
                 except Exception as e2:
                     print(f"Error con colección alternativa {collection_name}: {e2}")
         
         # Solo buscamos en una colección ahora, no hay respaldo
-        # Asegurarse de que tenemos al menos algunos resultados
+        # Make sure we have at least some results
         if not abstract_results:
-            raise Exception("No se encontraron documentos relevantes en la colección. Por favor revise la configuración de dimensiones de embeddings y la disponibilidad de la colección.")
+            raise Exception("No relevant documents found in the collection. Please review the embedding dimensions configuration and collection availability.")
             
-        # Combinar resultados
+        # Combine results
         all_results = abstract_results + colombia_results
         
         # Ordenar por score (de mayor a menor)
         all_results.sort(key=lambda x: x["score"], reverse=True)
         
-        # Limitar a los top resultados para no sobrecargar el contexto
+        # Limit to top results to not overload the context
         top_results = all_results[:config.TOP_K]
         
-        # Construir el contexto para OpenAI
+        # Build context for OpenAI
         context_pieces = []
-        print("\n--- CONSTRUCCIÓN DE CONTEXTO ---")
+        print("\n--- CONTEXT BUILDING ---")
         for i, doc in enumerate(top_results):
             # Primero, intentamos usar el campo content que debería haber sido extraído correctamente
             content = doc.get("content", "")
             source = "content"
             
-            # Verificar directamente los campos originales si están disponibles
+            # Directly check original fields if available
             if not content and "original_fields" in doc:
                 if "text" in doc["original_fields"] and doc["original_fields"]["text"]:
                     content = doc["original_fields"]["text"]
                     source = "original_fields.text"
                 
-                # Si aún no hay contenido, probar con el título
+                # If there's still no content, try with the title
                 if not content and "title" in doc["original_fields"] and doc["original_fields"]["title"]:
-                    content = f"Documento titulado: {doc['original_fields']['title']}"
+                    content = f"Document titled: {doc['original_fields']['title']}"
                     source = "original_fields.title"
             
-            # Añadir metadatos importantes al contexto
+            # Add important metadata to the context
             metadata = doc.get("metadata", {})
             meta_string = ""
             if metadata.get("title"):
-                meta_string += f"Título: {metadata['title']}\n"
+                meta_string += f"Title: {metadata['title']}\n"
             if metadata.get("source_id"):
                 meta_string += f"Fuente: {metadata['source_id']}\n"
             if metadata.get("page"):
                 meta_string += f"Página: {metadata['page']}\n"
             
-            # Combinar metadatos y contenido
+            # Combine metadata and content
             full_content = ""
             if meta_string:
                 full_content = f"{meta_string}\n{content}"
@@ -354,88 +470,88 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
             
             # Registrar lo que encontramos
             if full_content:
-                print(f"Documento {i+1}: Añadiendo {len(full_content)} caracteres al contexto (fuente: {source})")
+                print(f"Document {i+1}: Adding {len(full_content)} characters to context (source: {source})")
                 context_pieces.append(full_content)
             else:
-                print(f"Documento {i+1}: No se encontró contenido para añadir al contexto")
+                print(f"Document {i+1}: No content found to add to context")
         
-        # Unir todas las piezas de contexto
+        # Join all context pieces
         context = "\n\n---\n\n".join(context_pieces)
-        print(f"Contexto total: {len(context)} caracteres")
+        print(f"Total context: {len(context)} characters")
         
-        # Si no hay contexto, crear uno básico para evitar errores
+        # If there's no context, create a basic one to avoid errors
         if not context.strip():
-            print("ADVERTENCIA: No se encontró contexto útil en los documentos. Usando mensaje genérico.")
-            context = "No se encontró información relevante para esta pregunta en la base de datos."
+            print("WARNING: No useful context found in documents. Using generic message.")
+            context = "No relevant information was found for this question in the database."
         
-        # Obtener historial de chat para proporcionar contexto de la conversación
+        # Get chat history to provide conversation context
         chat_history = [
             {"content": msg.content, "is_bot": msg.is_bot}
-            for msg in chat_session.messages[-10:]  # Limitamos a las últimas 10 mensajes
+            for msg in chat_session.messages[-10:]  # Limit to the last 10 messages
         ]
         
-        # Preparar referencias para incluirlas en la respuesta en formato académico
+        # Prepare references to be included in the response in academic format
         references = []
-        print("\n--- PREPARANDO REFERENCIAS ACADÉMICAS ---")
-        for i, doc in enumerate(top_results[:3]):  # Usar hasta 3 documentos como referencias
+        print("\n--- PREPARING ACADEMIC REFERENCES ---")
+        for i, doc in enumerate(top_results[:3]):  # Use up to 3 documents as references
             metadata = doc.get("metadata", {})
             original = doc.get("original_fields", {})
             
-            # Obtener el título y datos bibliográficos
-            title = metadata.get("title") or original.get("title") or "Documento sin título"
+            # Get the title and bibliographic data
+            title = metadata.get("title") or original.get("title") or "Untitled document"
             
-            # Intentar extraer información de tomo/volumen del título o source_id
+            # Try to extract volume information from the title or source_id
             source_id = metadata.get("source_id") or original.get("source_id") or ""
-            # Normalizar nombres de documentos para formato académico
+            # Normalize document names for academic format
             if not source_id.startswith("Tomo") and "vol" not in source_id.lower():
-                # Intentar inferir si es un tomo o volumen basado en el título
+                # Try to infer if it's a volume based on the title
                 if "tomo" in title.lower() or "vol" in title.lower():
-                    source_id = title  # Usar el título si parece contener información de tomo
+                    source_id = title  # Use title if it seems to contain volume information
             
-            # Obtener número de página
+            # Get page number
             page = metadata.get("page") or original.get("page") or ""
-            # Convertir page a string si es un número
+            # Convert page to string if it's a number
             if isinstance(page, (int, float)):
                 page = str(int(page))  # Convertir a entero y luego a string para eliminar decimales
             
-            print(f"Referencia {i+1}: Título={title}, Fuente={source_id}, Página={page}")
+            print(f"Reference {i+1}: Title={title}, Source={source_id}, Page={page}")
             
-            # Añadir esta referencia a la lista con formato académico
+            # Add this reference to the list with academic format
             references.append({
                 "number": i+1,
                 "title": title,
                 "source_id": source_id,
                 "page": page,
-                "year": "2022",  # Año fijo para documentos de la Comisión de la Verdad
+                "year": "2022",  # Fixed year for Truth Commission documents
                 "publisher": "Colombia. Comisión de la Verdad",
                 "isbn": "978-958-53874-3-0"  # ISBN estándar para docs de la Comisión
             })
         
-        # Generar respuesta incluyendo el contexto y referencias
-        print(f"Generando respuesta con {len(context)} caracteres de contexto y {len(references)} referencias")
+        # Generate response including the context and references
+        print(f"Generating response with {len(context)} characters of context and {len(references)} references")
         answer = generate_answer(question, context, chat_history)
         
-        # Ajustar la respuesta para asegurarnos de que incluya las referencias en formato académico
+        # Adjust the response to ensure it includes the references in academic format
         if references:
             # Si ya existe la sección de Referencias, la reemplazamos; si no, la añadimos
             if "Referencias" in answer:
                 # Encontrar dónde comienza la sección de Referencias
                 ref_index = answer.find("Referencias")
-                # Truncar la respuesta para eliminar cualquier contenido después de "Referencias"
+                # Truncate the response to remove any content after "References"
                 answer = answer[:ref_index]
             
             # Crear la sección de Referencias en formato académico completo
             refs_text = "\n\nReferencias\n\n"
             for ref in references:
                 # Formato de referencia académica completa
-                title = ref['title'] or "Documento sin título"
+                title = ref['title'] or "Untitled document"
                 source_id = ref['source_id'] or ""
                 page = ref['page'] or ""
                 
                 # Construir la referencia en formato académico
                 ref_line = f"{ref['number']}. {title}. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0"
                 
-                # Añadir información de fuente/tomo si está disponible
+                # Add source/volume information if available
                 if source_id:
                     ref_line += f". (Fuente: {source_id}"
                     if page:
@@ -446,10 +562,10 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
                 
                 refs_text += ref_line + "\n"
             
-            # Añadir las referencias al final de la respuesta
+            # Add references to the end of the response
             answer = answer.strip() + "\n\n" + refs_text
         
-        # Guardar la respuesta con referencias
+        # Save the response with references
         bot_message = Message(
             content=answer,
             is_bot=True,
@@ -464,21 +580,21 @@ async def add_message(chat_id: str, question_request: QuestionRequest):
         
     except Exception as e:
         # En caso de error, registrar el error y devolver un mensaje específico
-        error_message = f"Error al procesar la pregunta: {str(e)}"
+        error_message = f"Error processing the question: {str(e)}"
         print(error_message)  # Log del error
         
         # Personalizar el mensaje de error según el tipo de problema
-        user_message = "No se pudo procesar la pregunta. Por favor, inténtalo de nuevo."
+        user_message = "Could not process the question. Please try again."
         
-        # Si el error está relacionado con una colección vacía
-        if "está vacía" in str(e):
-            user_message = "La base de datos no contiene documentos. Por favor, asegúrate de que los datos se hayan cargado correctamente en la colección."
-        # Si el error está relacionado con la conexión a Milvus
+        # If the error is related to an empty collection
+        if "está vacía" in str(e) or "is empty" in str(e):
+            user_message = "The database contains no documents. Please ensure data has been correctly loaded into the collection."
+        # If the error is related to Milvus connection
         elif "connection" in str(e).lower() or "connect" in str(e).lower():
-            user_message = "No se pudo conectar a la base de datos. Por favor, verifica la conexión con el servidor Milvus."
-        # Si el error está relacionado con la dimensión del vector
+            user_message = "Could not connect to the database. Please verify the connection to the Milvus server."
+        # If the error is related to vector dimensions
         elif "dimension" in str(e).lower() or "dimensión" in str(e).lower():
-            user_message = "Hay un problema con la dimensión de los vectores. Por favor, verifica la configuración del modelo de embeddings."
+            user_message = "There is a problem with the vector dimensions. Please verify the embeddings model configuration."
         
         raise HTTPException(
             status_code=500,
