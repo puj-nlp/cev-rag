@@ -1,11 +1,11 @@
+"""OpenAI tools implementation for RAG context retrieval."""
+
 import json
 from typing import List, Dict, Any
 from openai import OpenAI
-import config
-from rag_service import get_embedding, get_abstract_collection, get_documents_from_query
 
-# Definition of the function to be used as a tool
-PAGES_GET_FUNCTION = {
+# Function definition for tool calling
+RAG_FUNCTION = {
     "name": "get_relevant_information",
     "description": "Get document fragments and source material relevant to a question related to the Colombian conflict.",
     "parameters": {
@@ -20,88 +20,106 @@ PAGES_GET_FUNCTION = {
     }
 }
 
-def get_rag_context(question: str) -> dict:
+
+def get_rag_context_for_tools(question: str) -> dict:
     """
-    Gets relevant RAG context for a specific question.
-    
-    Args:
-        question: The question for which to search information
-        
-    Returns:
-        dict: Contains formatted RAG context and document metadata
+    Gets relevant RAG context for a specific question for use with tools.
+    This function interfaces with the existing RAG infrastructure.
     """
     try:
-        # Get the embedding for the question
-        query_vec = get_embedding(question)
+        # Import here to avoid circular dependencies
+        from ...infrastructure.dependencies import get_vector_database, get_embedding_service, get_context_builder
+        import asyncio
         
-        # Search in the collection
-        abstract_collection = get_abstract_collection()
-        search_results = get_documents_from_query(query_vec, abstract_collection)
-        
-        # Format results for context
-        context_pieces = []
-        documents_metadata = []
-        
-        for i, doc in enumerate(search_results):
-            content = doc.get("content", "")
-            metadata = doc.get("metadata", {})
-            original = doc.get("original_fields", {})
+        async def _get_context():
+            vector_db = get_vector_database()
+            embedding_service = get_embedding_service()
+            context_builder = get_context_builder()
             
-            # Create a consistent format for each fragment
-            source_title = metadata.get("title") or original.get("title") or "Untitled document"
-            source_url = metadata.get("link", "")
-            page_number = metadata.get("page") or original.get("page") or ""
-            source_id = metadata.get("source_id") or original.get("source_id") or ""
+            # Generate embedding
+            embedding = await embedding_service.generate_embedding(question)
             
-            formatted_piece = f"Source: {source_title}\n"
-            if source_url:
-                formatted_piece += f"URL: {source_url}\n"
-            if page_number:
-                formatted_piece += f"Page number: {page_number}\n"
-            formatted_piece += f"Text: {content}"
+            # Search documents
+            documents = await vector_db.search_similar_documents(embedding, limit=5)
             
-            context_pieces.append(formatted_piece)
+            # Build context
+            rag_context = await context_builder.build_context(documents, question)
             
-            # Store document metadata for reference extraction
-            documents_metadata.append({
-                "title": source_title,
-                "page": page_number,
-                "source_id": source_id,
-                "metadata": metadata,
-                "original_fields": original,
-                "score": doc.get("score", 0)
-            })
+            # Build context with proper formatting
+            formatted_context_pieces = []
+            documents_metadata = []
+            
+            for doc in rag_context.documents:
+                # Extract metadata consistently
+                title = doc.metadata.get("title") or doc.original_fields.get("title") or "Untitled document"
+                url = doc.metadata.get("link", "")
+                page = doc.metadata.get("page") or doc.original_fields.get("page") or ""
+                source_id = doc.metadata.get("source_id") or doc.original_fields.get("source_id") or ""
+                
+                # Format each piece consistently
+                formatted_piece = f"Source: {title}\n"
+                if url:
+                    formatted_piece += f"URL: {url}\n"
+                if page:
+                    formatted_piece += f"Page number: {page}\n"
+                formatted_piece += f"Text: {doc.content}"
+                
+                formatted_context_pieces.append(formatted_piece)
+                
+                # Store metadata for reference extraction
+                documents_metadata.append({
+                    "title": title,
+                    "page": page,
+                    "source_id": source_id,
+                    "metadata": doc.metadata,
+                    "original_fields": doc.original_fields,
+                    "score": doc.score
+                })
+            
+            # Join all context pieces with separators
+            formatted_context = "\n\n---\n\n".join(formatted_context_pieces)
+            
+            return {
+                "context": formatted_context,
+                "documents": documents_metadata
+            }
         
-        # Join all context pieces
-        context = "\n\n---\n\n".join(context_pieces)
+        # Create new event loop for this thread if none exists
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is already running, use asyncio.create_task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, _get_context())
+                    return future.result()
+            else:
+                return loop.run_until_complete(_get_context())
+        except RuntimeError:
+            # No event loop in current thread, create new one
+            return asyncio.run(_get_context())
         
-        return {
-            "context": context,
-            "documents": documents_metadata
-        }
-    
     except Exception as e:
-        print(f"Error getting RAG context: {e}")
+        print(f"Error getting RAG context for tools: {e}")
         return {
             "context": f"Could not retrieve relevant information due to: {str(e)}",
             "documents": []
         }
 
-def generate_answer_with_tools(question: str, chat_history: List[Dict]) -> Dict[str, Any]:
+
+def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI) -> Dict[str, Any]:
     """
     Generates a response using OpenAI with the ability to call tools for more context.
     
     Args:
         question: User's question
         chat_history: Conversation history
+        client: OpenAI client instance
         
     Returns:
         Dict: Generated response and metadata
     """
-    # OpenAI client
-    client = OpenAI(api_key=config.OPENAI_API_KEY)
-    
-    # System message
+    # System message with detailed academic guidelines
     system_message = {
         "role": "system", 
         "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate detailed and rigorous responses based EXCLUSIVELY on the provided information. Follow these specific guidelines:
@@ -138,7 +156,7 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
     # Initialize messages
     messages = [system_message]
     
-    # Add relevant chat history
+    # Add relevant chat history (last 5 messages)
     relevant_history = chat_history[-5:] if len(chat_history) > 5 else chat_history
     for message in relevant_history:
         role = "assistant" if message["is_bot"] else "user"
@@ -150,18 +168,18 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
     # List to collect all contextual information obtained
     collected_contexts = []
     
-    # Conversation loop with tools
-    max_turns = 3  # Limit the maximum number of turns to avoid loops
+    # Conversation loop with tools (max 3 turns to avoid loops)
+    max_turns = 3
     
-    for _ in range(max_turns):
-        # Llamar a la API de OpenAI
+    for turn in range(max_turns):
         try:
+            # Call OpenAI API with tools
             response = client.chat.completions.create(
-                model=config.COMPLETION_MODEL,
+                model="gpt-4o-mini",
                 messages=messages,
                 tools=[{
                     "type": "function",
-                    "function": PAGES_GET_FUNCTION
+                    "function": RAG_FUNCTION
                 }],
                 tool_choice="auto",
                 temperature=0.3
@@ -171,7 +189,11 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
             response_message = response.choices[0].message
             
             # Add the message to history
-            messages.append(response_message.model_dump())
+            messages.append({
+                "role": "assistant",
+                "content": response_message.content,
+                "tool_calls": response_message.tool_calls
+            })
             
             # Check if there are tool calls
             tool_calls = response_message.tool_calls
@@ -181,21 +203,24 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
                 return {
                     "content": response_message.content,
                     "is_bot": True,
-                    "contexts": collected_contexts
+                    "contexts": collected_contexts,
+                    "references": _extract_references_from_contexts(collected_contexts)
                 }
             
             # Process each tool call
             for tool_call in tool_calls:
                 if tool_call.function.name == "get_relevant_information":
-                    # Extraer argumentos
+                    # Extract arguments
                     func_args = json.loads(tool_call.function.arguments)
                     subquestion = func_args.get("question")
                     
                     if not subquestion:
                         continue
                     
+                    print(f"Tool called for turn {turn + 1} with question: {subquestion}")
+                    
                     # Get RAG context for the sub-question
-                    rag_result = get_rag_context(subquestion)
+                    rag_result = get_rag_context_for_tools(subquestion)
                     context = rag_result["context"]
                     documents = rag_result["documents"]
                     
@@ -215,17 +240,18 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
                     })
         
         except Exception as e:
-            print(f"Error in OpenAI API call: {e}")
+            print(f"Error in OpenAI API call on turn {turn + 1}: {e}")
             return {
                 "content": f"An error occurred while processing your question: {str(e)}",
                 "is_bot": True,
-                "error": True
+                "error": True,
+                "contexts": collected_contexts
             }
     
     # If we reach the turn limit, generate final response with all collected context
     try:
         final_response = client.chat.completions.create(
-            model=config.COMPLETION_MODEL,
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0.3,
             max_tokens=800
@@ -234,7 +260,8 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
         return {
             "content": final_response.choices[0].message.content,
             "is_bot": True,
-            "contexts": collected_contexts
+            "contexts": collected_contexts,
+            "references": _extract_references_from_contexts(collected_contexts)
         }
     
     except Exception as e:
@@ -242,5 +269,35 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
         return {
             "content": f"An error occurred while generating the final response: {str(e)}",
             "is_bot": True,
-            "error": True
+            "error": True,
+            "contexts": collected_contexts
         }
+
+
+def _extract_references_from_contexts(collected_contexts: List[Dict]) -> List[Dict]:
+    """Extract references from collected contexts for citation purposes."""
+    references = []
+    ref_number = 1
+    
+    for context_data in collected_contexts:
+        documents = context_data.get("documents", [])
+        for doc in documents[:3]:  # Limit to first 3 documents per context
+            references.append({
+                "number": ref_number,
+                "title": doc.get("title", "Untitled document"),
+                "source_id": doc.get("source_id", ""),
+                "page": str(doc.get("page", "")),
+                "year": "2022",
+                "publisher": "Colombia. Comisión de la Verdad",
+                "isbn": "978-958-53874-3-0"
+            })
+            ref_number += 1
+            
+            # Limit total references to avoid overwhelming response
+            if ref_number > 10:
+                break
+        
+        if ref_number > 10:
+            break
+    
+    return references
