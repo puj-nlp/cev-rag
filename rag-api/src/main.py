@@ -34,10 +34,10 @@ def create_app() -> FastAPI:
     chat_controller = ChatController(get_chat_use_case())
     question_controller = QuestionController(get_question_answering_use_case())
     
-    # Register routes
-    app.include_router(health_controller.router)
-    app.include_router(chat_controller.router)
-    app.include_router(question_controller.router)
+    # Register routes with /api prefix
+    app.include_router(health_controller.router, prefix="/api")
+    app.include_router(chat_controller.router, prefix="/api")
+    app.include_router(question_controller.router, prefix="/api")
     
     # Verify system configuration on startup
     @app.on_event("startup")
