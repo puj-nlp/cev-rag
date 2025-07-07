@@ -36,14 +36,26 @@ def get_rag_context_for_tools(question: str) -> dict:
             embedding_service = get_embedding_service()
             context_builder = get_context_builder()
             
+            print(f"Getting RAG context for question: {question}")
+            
             # Generate embedding
             embedding = await embedding_service.generate_embedding(question)
+            print(f"Generated embedding with dimension: {len(embedding)}")
             
             # Search documents
             documents = await vector_db.search_similar_documents(embedding, limit=5)
+            print(f"Found {len(documents)} documents from vector search")
+            
+            if not documents:
+                print("WARNING: No documents found in vector search")
+                return {
+                    "context": "No se encontraron documentos relevantes en la base de datos para esta consulta.",
+                    "documents": []
+                }
             
             # Build context
             rag_context = await context_builder.build_context(documents, question)
+            print(f"Built context with {len(rag_context.documents)} documents")
             
             # Build context with proper formatting
             formatted_context_pieces = []
@@ -78,6 +90,8 @@ def get_rag_context_for_tools(question: str) -> dict:
             
             # Join all context pieces with separators
             formatted_context = "\n\n---\n\n".join(formatted_context_pieces)
+            
+            print(f"Final formatted context length: {len(formatted_context)} characters")
             
             return {
                 "context": formatted_context,
@@ -122,35 +136,63 @@ def generate_answer_with_tools(question: str, chat_history: List[Dict], client: 
     # System message with detailed academic guidelines
     system_message = {
         "role": "system", 
-        "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate detailed and rigorous responses based EXCLUSIVELY on the provided information. Follow these specific guidelines:
+        "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate responses based EXCLUSIVELY on the provided information following this EXACT format:
 
-1. STRICT ACADEMIC FORMAT:
-   - Begin with a clear "Introduction" that presents the general topic.
-   - Use bold subtitles to organize information by regions, themes, or concepts.
-   - When mentioning specific data, ALWAYS include the citation in IEEE format [number] at the end of the sentence.
-   - End with a "Conclusion" that synthesizes the main points.
+RESPONSE FORMAT:
+- Write in Spanish (unless specifically asked otherwise)
+- Structure responses in 2-3 concise, well-developed paragraphs maximum
+- Each paragraph should focus on one main concept or aspect
+- Use in-text citations in brackets [1], [2], [3] etc. for all claims
+- End with a "Sources" section listing all references
+- Keep responses CONCISE but comprehensive (content: 300-500 words, sources section additional)
 
-2. CITATIONS AND REFERENCES:
-   - SPECIFICALLY cite pages and exact sources from the documents.
-   - Use the format [number] for in-text citations.
-   - At the end, include a "References" section with the complete format: [number] Document title, page X.
+PARAGRAPH STRUCTURE:
+- Start each paragraph with a clear topic sentence defining the concept
+- Develop the idea with specific details from the sources
+- Include concrete examples, data, or testimonies when available
+- Use academic, formal Spanish language
+- Connect concepts logically between paragraphs
+- Be direct and avoid repetitive information
 
-3. CONTENT, ETHICS, AND TONE:
-   - Treat topics with academic rigor and ethical sensitivity due to the nature of the conflict.
-   - DO NOT reveal names of victims, specific locations of sensitive events, or details that could endanger individuals or communities.
-   - Use precise, objective, and formal language; avoid emotionally charged terms.
-   - Base your responses EXCLUSIVELY on the provided information; do not make assumptions.
-   - Maintain neutrality and avoid bias towards any actor in the conflict.
+CITATION REQUIREMENTS:
+- Use ONLY numbered citations [1], [2], [3] throughout the text (no "Ver fuente" or other text)
+- Each significant claim or concept must be cited
+- Multiple citations can be used in the same sentence if needed: [1][2]
+- Cite page numbers when specific information is referenced
+- Start citations from [1] and continue sequentially
+- Do NOT include any links or additional text in citations
 
-4. RESPONSIBILITY AND ATTRIBUTION:
-   - Focus on systemic factors, institutional roles, and collective responsibility rather than blaming specific individuals.
-   - Analyze the broader context and the interaction of various actors in the conflict.
+SOURCES SECTION FORMAT:
+After the main text, include:
+"Sources" (exactly as shown)
+1. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
+2. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
+3. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
 
-5. INFORMATION MANAGEMENT:
-   - If you need specific information, use the get_relevant_information function to search for it.
-   - If sources present conflicts or ambiguities, acknowledge it and present the different perspectives.
+The Sources section must include ALL documents referenced by the numbered citations [1], [2], [3], etc.
 
-IMPORTANT: USE the get_relevant_information tool to search for specific information about aspects of the Colombian conflict. You can use this tool multiple times to refine your search."""
+CONTENT GUIDELINES:
+- Base responses EXCLUSIVELY on provided information
+- DO NOT reveal victim names or specific locations that could endanger individuals
+- Use precise, objective language
+- Present comprehensive information while maintaining academic rigor
+- Focus on concepts, policies, and documented findings from the Truth Commission
+- Explain complex concepts clearly for academic audience
+- Keep responses focused and avoid unnecessary elaboration
+
+EXAMPLE STRUCTURE:
+La "Paz Grande" es un concepto desarrollado por la Comisión de la Verdad de Colombia para describir un futuro en el que se supere el legado del conflicto armado mediante la verdad, el reconocimiento y la reconciliación [1]. La Comisión hace un llamado a la sociedad colombiana a acoger las verdades de la tragedia del conflicto [2].
+
+La "Paz Grande" también se refiere al entendimiento del conflicto armado en Colombia como parte de un complejo entramado de factores políticos, económicos, culturales y de narcotráfico, donde las responsabilidades son compartidas y colectivas [3].
+
+Sources
+1. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 22. Link
+2. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 38. Link
+3. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 46. Link
+
+CRITICAL: Every citation number [1], [2], [3] used in the text MUST have a corresponding entry in the Sources section.
+
+IMPORTANT: Use the get_relevant_information tool to find comprehensive information about the topic before responding."""
     }
     
     # Initialize messages
@@ -200,8 +242,13 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
             
             # If there are no tool calls, return the final response
             if not tool_calls:
+                # Format the response with sources section
+                formatted_response = _format_response_with_sources(
+                    response_message.content, 
+                    collected_contexts
+                )
                 return {
-                    "content": response_message.content,
+                    "content": formatted_response,
                     "is_bot": True,
                     "contexts": collected_contexts,
                     "references": _extract_references_from_contexts(collected_contexts)
@@ -257,8 +304,14 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
             max_tokens=800
         )
         
+        # Format the final response with sources section
+        formatted_final_response = _format_response_with_sources(
+            final_response.choices[0].message.content, 
+            collected_contexts
+        )
+        
         return {
-            "content": final_response.choices[0].message.content,
+            "content": formatted_final_response,
             "is_bot": True,
             "contexts": collected_contexts,
             "references": _extract_references_from_contexts(collected_contexts)
@@ -274,30 +327,101 @@ IMPORTANT: USE the get_relevant_information tool to search for specific informat
         }
 
 
+def _format_response_with_sources(content: str, collected_contexts: List[Dict]) -> str:
+    """Format the response with a proper Sources section in the desired style."""
+    if not collected_contexts:
+        return content
+    
+    # Extract references
+    references = _extract_references_from_contexts(collected_contexts)
+    
+    if not references:
+        return content
+    
+    # If content already has a Sources section, don't add another
+    if "Sources" in content or "Fuentes" in content:
+        return content
+    
+    # Find all citation numbers in the content to ensure we have all referenced sources
+    import re
+    cited_numbers = set()
+    citation_matches = re.findall(r'\[(\d+)\]', content)
+    for match in citation_matches:
+        cited_numbers.add(int(match))
+    
+    # Build sources section with all cited references
+    sources_section = "\n\nSources"
+    
+    # If we have cited numbers, use them to determine how many sources to include
+    if cited_numbers:
+        max_sources = max(cited_numbers)
+        # Ensure we don't exceed available references
+        max_sources = min(max_sources, len(references))
+    else:
+        # If no citations found, include first 3 references
+        max_sources = min(3, len(references))
+    
+    for i in range(max_sources):
+        if i < len(references):
+            ref = references[i]
+            source_line = f"\n{i+1}. {ref['title']}. ({ref['year']}). {ref['publisher']}."
+            if ref.get('isbn'):
+                source_line += f" ISBN {ref['isbn']}."
+            if ref.get('page'):
+                source_line += f", Page {ref['page']}."
+            if ref.get('url'):
+                source_line += f" {ref['url']}"
+            sources_section += source_line
+    
+    return content + sources_section
+
+
 def _extract_references_from_contexts(collected_contexts: List[Dict]) -> List[Dict]:
     """Extract references from collected contexts for citation purposes."""
     references = []
     ref_number = 1
+    seen_references = set()  # To avoid duplicate references
     
     for context_data in collected_contexts:
         documents = context_data.get("documents", [])
-        for doc in documents[:3]:  # Limit to first 3 documents per context
+        for doc in documents:  # Include ALL documents, not just first 3
+            source_id = doc.get("source_id", "")
+            page = str(doc.get("page", ""))
+            title = doc.get("title", "Untitled document")
+            
+            # Create a unique identifier to avoid duplicates
+            unique_id = f"{title}_{page}"
+            if unique_id in seen_references:
+                continue
+            seen_references.add(unique_id)
+            
+            # Get URL from metadata or original_fields if available
+            url = None
+            if "metadata" in doc:
+                url = doc["metadata"].get("link") or doc["metadata"].get("url")
+            if not url and "original_fields" in doc:
+                url = doc["original_fields"].get("link") or doc["original_fields"].get("url")
+            
+            # Format URL as "Link" if available
+            formatted_url = "Link" if url else None
+            
             references.append({
                 "number": ref_number,
-                "title": doc.get("title", "Untitled document"),
-                "source_id": doc.get("source_id", ""),
-                "page": str(doc.get("page", "")),
+                "title": title,
+                "source_id": source_id,
+                "page": page,
                 "year": "2022",
                 "publisher": "Colombia. Comisión de la Verdad",
-                "isbn": "978-958-53874-3-0"
+                "isbn": "978-958-53874-3-0",
+                "url": formatted_url  # Use "Link" format as in your example
             })
             ref_number += 1
             
-            # Limit total references to avoid overwhelming response
-            if ref_number > 10:
+            # Increased limit to ensure enough references for citations but not too many
+            if ref_number > 8:
                 break
         
-        if ref_number > 10:
+        if ref_number > 8:
             break
     
     return references

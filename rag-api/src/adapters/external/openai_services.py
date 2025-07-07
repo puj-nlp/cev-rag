@@ -75,31 +75,41 @@ class OpenAILLMService(LLMService):
                 messages=[
                     {
                         "role": "system", 
-                        "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate detailed and rigorous responses based EXCLUSIVELY on the provided information. Follow these specific guidelines:
+                        "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate CONCRETE, SPECIFIC, and CONCISE responses based EXCLUSIVELY on the provided information. Follow these guidelines:
 
-1. STRICT ACADEMIC FORMAT:
-   - Begin with a clear "Introduction" that presents the general topic.
-   - Use bold subtitles to organize information by regions, themes, or concepts.
-   - When mentioning specific data, include references to the source documents.
-   - End with a "Conclusion" that synthesizes the main points.
+1. DIRECT AND CONCRETE FORMAT:
+   - Start with a clear, direct answer to the question
+   - Present SPECIFIC data, numbers, and facts from the documents
+   - Use concrete examples and cases mentioned in the sources
+   - Include exact references to source documents with page numbers when available
+   - Keep responses BRIEF and focused while being informative
 
-2. CONTENT, ETHICS, AND TONE:
-   - Treat topics with academic rigor and ethical sensitivity due to the nature of the conflict.
-   - DO NOT reveal names of victims, specific locations of sensitive events, or details that could endanger individuals or communities.
-   - Use precise, objective, and formal language; avoid emotionally charged terms.
-   - Base your responses EXCLUSIVELY on the provided information; do not make assumptions.
-   - Maintain neutrality and avoid bias towards any actor in the conflict.
+2. EVIDENCE-BASED CONTENT:
+   - Prioritize specific statistics, figures, and documented facts
+   - Quote or paraphrase specific testimonies and findings (without victim names)
+   - Mention concrete policies, programs, or institutional actions documented
+   - Reference specific time periods, regions, or events when relevant
+   - Avoid generalizations - use the specific information from the documents
 
-3. RESPONSIBILITY AND ATTRIBUTION:
-   - Focus on systemic factors, institutional roles, and collective responsibility rather than blaming specific individuals.
-   - Analyze the broader context and the interaction of various actors in the conflict.
+3. ETHICAL STANDARDS:
+   - DO NOT reveal names of victims or specific locations that could endanger individuals
+   - Use precise, objective language with concrete details
+   - Base responses EXCLUSIVELY on provided information - no assumptions
+   - Maintain neutrality while presenting specific documented facts
 
-Always provide comprehensive answers based on the given context while maintaining academic standards and ethical sensitivity."""
+4. CONCISE STRUCTURE:
+   - Lead with the most important concrete information
+   - Support with 2-3 key specific data points or examples
+   - Include most relevant statistics when available
+   - End with a brief synthesis if necessary
+   - ALWAYS preserve complete reference citations
+
+Focus on delivering the most essential, actionable information in a concise format while maintaining all references."""
                     },
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=1500
+                max_tokens=500
             )
             
             return response.choices[0].message.content
@@ -125,6 +135,8 @@ Always provide comprehensive answers based on the given context while maintainin
             result["references"] = []
         if "contexts" not in result:
             result["contexts"] = []
+        
+
             
         return result
     
@@ -138,7 +150,7 @@ Always provide comprehensive answers based on the given context while maintainin
                 role = "Assistant" if msg["is_bot"] else "User"
                 conversation_context += f"{role}: {msg['content']}\n"
 
-        prompt = f"""Based on the following information from Colombian Truth Commission documents, please answer the question with academic rigor and ethical sensitivity.
+        prompt = f"""Based on the following information from Colombian Truth Commission documents, provide a CONCRETE and SPECIFIC answer.
 
 Context from Truth Commission Documents:
 {context}
@@ -147,14 +159,16 @@ Context from Truth Commission Documents:
 Question: {question}
 
 Instructions:
-- Provide a comprehensive and detailed answer based EXCLUSIVELY on the given context
-- Structure your response with clear introduction, organized body with subtitles, and conclusion
-- Use precise, objective, and formal academic language
-- Focus on systemic factors and institutional analysis rather than individual blame
-- DO NOT reveal names of victims or specific sensitive locations
-- If the context doesn't contain sufficient information, clearly mention this limitation
-- Maintain neutrality and avoid bias towards any actor in the conflict
+- Start with a direct answer using SPECIFIC data, numbers, and documented facts from the context
+- Include concrete examples, statistics, and measurable outcomes mentioned in the sources
+- Quote specific policies, programs, or institutional actions with their documented effects
+- Reference exact page numbers and sources when citing specific information
+- Use precise figures, percentages, dates, and quantitative data when available
+- Focus on actionable, specific information rather than broad generalizations
+- If the context contains limited information, clearly state what specific data is available and what is missing
+- DO NOT reveal victim names or sensitive locations that could endanger individuals
+- Maintain objectivity while presenting concrete documented facts
 
-Answer:"""
+Provide a focused, data-driven response based exclusively on the given context."""
         
         return prompt

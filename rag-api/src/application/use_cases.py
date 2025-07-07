@@ -88,6 +88,9 @@ class QuestionAnsweringUseCase:
         if not chat_session:
             raise ValueError(f"Chat session {question.chat_id} not found")
         
+        # Check if this is the first message to update the title
+        is_first_message = len(chat_session.messages) == 0
+        
         # Add user message to chat
         current_time = datetime.fromisoformat(self._timestamp_service.get_current_timestamp())
         user_message = Message(
@@ -96,6 +99,12 @@ class QuestionAnsweringUseCase:
             timestamp=current_time
         )
         chat_session.messages.append(user_message)
+        
+        # Update chat title with the first question if it's a generic title
+        if is_first_message and (chat_session.title == "Nuevo Chat" or chat_session.title == "New conversation"):
+            # Truncate question if too long for title
+            new_title = question.text[:50] + "..." if len(question.text) > 50 else question.text
+            chat_session.title = new_title
         
         try:
             # Prepare chat history

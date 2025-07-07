@@ -71,6 +71,9 @@ class DefaultRAGContextBuilder(RAGContextBuilder):
         if isinstance(page, (int, float)):
             page = str(int(page))
         
+        # Get URL from metadata if available
+        url = document.metadata.get("link") or document.metadata.get("url")
+        
         return Reference(
             number=number,
             title=title,
@@ -78,7 +81,8 @@ class DefaultRAGContextBuilder(RAGContextBuilder):
             page=page,
             year="2022",
             publisher="Colombia. Comisión de la Verdad",
-            isbn="978-958-53874-3-0"
+            isbn="978-958-53874-3-0",
+            url=url
         )
 
 

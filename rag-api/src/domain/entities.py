@@ -52,6 +52,7 @@ class Reference:
     year: str
     publisher: str
     isbn: str
+    url: Optional[str] = None
 
 
 @dataclass
