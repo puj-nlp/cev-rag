@@ -26,6 +26,11 @@ class ChatSessionRepository(ABC):
         pass
     
     @abstractmethod
+    async def find_by_session_id(self, session_id: str) -> List[ChatSession]:
+        """Find all chat sessions for a specific session ID."""
+        pass
+    
+    @abstractmethod
     async def delete(self, chat_id: UUID) -> bool:
         """Delete a chat session."""
         pass

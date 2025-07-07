@@ -26,6 +26,13 @@ class InMemoryChatSessionRepository(ChatSessionRepository):
         """Find all chat sessions."""
         return list(self._chats.values())
     
+    async def find_by_session_id(self, session_id: str) -> List[ChatSession]:
+        """Find all chat sessions for a specific session ID."""
+        return [
+            chat for chat in self._chats.values() 
+            if chat.session_id == session_id
+        ]
+    
     async def delete(self, chat_id: UUID) -> bool:
         """Delete a chat session."""
         if chat_id in self._chats:

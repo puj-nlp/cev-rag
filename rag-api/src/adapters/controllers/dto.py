@@ -17,6 +17,7 @@ class ChatSessionDTO(BaseModel):
     """DTO for chat sessions."""
     id: str
     title: str
+    session_id: Optional[str] = None
     messages: List[MessageDTO] = []
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -25,11 +26,13 @@ class ChatSessionDTO(BaseModel):
 class QuestionRequestDTO(BaseModel):
     """DTO for question requests."""
     question: str
+    session_id: Optional[str] = None
 
 
 class ChatRequestDTO(BaseModel):
     """DTO for chat creation requests."""
     title: str = "New conversation"
+    session_id: Optional[str] = None
 
 
 class ErrorResponseDTO(BaseModel):

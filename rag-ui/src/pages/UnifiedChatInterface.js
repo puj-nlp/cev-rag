@@ -20,6 +20,19 @@ const UnifiedChatInterface = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
   
+  // Generar o recuperar ID de sesión único para este navegador
+  const getSessionId = () => {
+    let sessionId = localStorage.getItem('ventana_session_id');
+    if (!sessionId) {
+      // Generar un ID único usando timestamp + random
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('ventana_session_id', sessionId);
+    }
+    return sessionId;
+  };
+
+  const sessionId = getSessionId();
+  
   // Estados para la lista de chats
   const [chats, setChats] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
@@ -56,7 +69,8 @@ const UnifiedChatInterface = () => {
   const fetchChats = async () => {
     try {
       setLoadingChats(true);
-      const response = await axios.get(`${API_URL}/chats`);
+      // Enviar sessionId como parámetro para filtrar chats por sesión
+      const response = await axios.get(`${API_URL}/chats?session_id=${sessionId}`);
       setChats(response.data);
       setError(null);
     } catch (err) {
@@ -89,7 +103,8 @@ const UnifiedChatInterface = () => {
   const handleCreateNewChat = async () => {
     try {
       const response = await axios.post(`${API_URL}/chats`, {
-        title: 'New Chat'
+        title: 'Nuevo Chat',
+        session_id: sessionId  // Incluir session_id al crear el chat
       });
       
       const newChat = response.data;
@@ -135,6 +150,10 @@ const UnifiedChatInterface = () => {
     try {
       setSending(true);
       
+      // Check if this is the first message (to update chat title in UI)
+      const isFirstMessage = activeChat.messages.length === 0;
+      const userMessage = message;
+      
       // Optimistic update
       setActiveChat(prev => ({
         ...prev,
@@ -145,15 +164,28 @@ const UnifiedChatInterface = () => {
             is_bot: false,
             timestamp: new Date().toISOString()
           }
-        ]
+        ],
+        // Update title locally if this is the first message
+        title: isFirstMessage ? (userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage) : prev.title
       }));
+      
+      // Update chat title in the chats list if this is the first message
+      if (isFirstMessage) {
+        const chatTitle = userMessage.length > 50 ? userMessage.substring(0, 50) + "..." : userMessage;
+        setChats(prev => prev.map(chat => 
+          chat.id === activeChat.id 
+            ? { ...chat, title: chatTitle }
+            : chat
+        ));
+      }
       
       setMessage('');
       
       // Send the message to the API
       const response = await axios.post(`${API_URL}/chats/${activeChat.id}/messages`, {
-        question: message,
-        chat_id: activeChat.id
+        question: userMessage,
+        chat_id: activeChat.id,
+        session_id: sessionId  // Incluir session_id en los mensajes
       });
       
       // Add the bot response to the chat
@@ -177,6 +209,16 @@ const UnifiedChatInterface = () => {
     await handleCreateNewChat();
   };
 
+  // Función opcional para limpiar la sesión (puede ser útil para testing o soporte)
+  const clearSession = () => {
+    localStorage.removeItem('ventana_session_id');
+    setChats([]);
+    setActiveChat(null);
+    navigate('/');
+    // Recargar para generar nueva sesión
+    window.location.reload();
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -192,6 +234,13 @@ const UnifiedChatInterface = () => {
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
         Chats
       </Typography>
+      
+      {/* Indicador de sesión (solo visible en desarrollo) */}
+      {process.env.NODE_ENV === 'development' && (
+        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+          Sesión: {sessionId.slice(-8)}
+        </Typography>
+      )}
       
       <Button 
         variant="outlined" 
@@ -316,12 +365,7 @@ const UnifiedChatInterface = () => {
           position: 'relative'
         }}
       >
-        {/* Chat Header */}
-        <Box sx={{ mb: 2, px: 2 }}>
-          <Typography variant="h6" component="h1" sx={{ fontWeight: 600 }}>
-            {activeChat.title}
-          </Typography>
-        </Box>
+        
         
         {/* Messages Area */}
         <Paper

@@ -44,14 +44,17 @@ class ChatController:
             methods=["DELETE"]
         )
     
-    async def list_chats(self) -> List[ChatSessionDTO]:
-        """List all chat sessions."""
-        chat_sessions = await self._chat_use_case.list_chat_sessions()
+    async def list_chats(self, session_id: str = Query(None, description="Session ID to filter chats")) -> List[ChatSessionDTO]:
+        """List all chat sessions, optionally filtered by session ID."""
+        chat_sessions = await self._chat_use_case.list_chat_sessions(session_id=session_id)
         return [ChatSessionMapper.to_dto(chat) for chat in chat_sessions]
     
     async def create_chat(self, chat_request: ChatRequestDTO) -> ChatSessionDTO:
         """Create a new chat session."""
-        chat_session = await self._chat_use_case.create_chat_session(chat_request.title)
+        chat_session = await self._chat_use_case.create_chat_session(
+            chat_request.title, 
+            session_id=chat_request.session_id
+        )
         return ChatSessionMapper.to_dto(chat_session)
     
     async def get_chat(self, chat_id: str) -> ChatSessionDTO:

@@ -20,6 +20,7 @@ class ChatSession:
     """Domain entity representing a chat session."""
     id: UUID
     title: str
+    session_id: Optional[str]
     messages: List[Message]
     created_at: datetime
     updated_at: datetime

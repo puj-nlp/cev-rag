@@ -16,6 +16,7 @@ class ChatSessionMapper:
         return ChatSessionDTO(
             id=str(entity.id),
             title=entity.title,
+            session_id=entity.session_id,
             messages=[MessageMapper.to_dto(msg) for msg in entity.messages],
             created_at=entity.created_at.isoformat(),
             updated_at=entity.updated_at.isoformat()
@@ -29,6 +30,7 @@ class ChatSessionMapper:
         return ChatSession(
             id=UUID(dto.id),
             title=dto.title,
+            session_id=dto.session_id,
             messages=[MessageMapper.from_dto(msg) for msg in dto.messages],
             created_at=datetime.fromisoformat(dto.created_at) if dto.created_at else datetime.now(),
             updated_at=datetime.fromisoformat(dto.updated_at) if dto.updated_at else datetime.now()

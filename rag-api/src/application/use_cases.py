@@ -26,7 +26,7 @@ class ChatSessionUseCase:
         self._chat_repository = chat_repository
         self._timestamp_service = timestamp_service
     
-    async def create_chat_session(self, title: str) -> ChatSession:
+    async def create_chat_session(self, title: str, session_id: Optional[str] = None) -> ChatSession:
         """Create a new chat session."""
         chat_id = uuid4()
         current_time = datetime.fromisoformat(self._timestamp_service.get_current_timestamp())
@@ -34,6 +34,7 @@ class ChatSessionUseCase:
         chat_session = ChatSession(
             id=chat_id,
             title=title,
+            session_id=session_id,
             messages=[],
             created_at=current_time,
             updated_at=current_time
@@ -45,8 +46,10 @@ class ChatSessionUseCase:
         """Get a chat session by ID."""
         return await self._chat_repository.find_by_id(chat_id)
     
-    async def list_chat_sessions(self) -> List[ChatSession]:
-        """List all chat sessions."""
+    async def list_chat_sessions(self, session_id: Optional[str] = None) -> List[ChatSession]:
+        """List all chat sessions, optionally filtered by session ID."""
+        if session_id:
+            return await self._chat_repository.find_by_session_id(session_id)
         return await self._chat_repository.find_all()
     
     async def delete_chat_session(self, chat_id: UUID) -> bool:
