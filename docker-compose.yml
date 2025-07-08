@@ -8,15 +8,11 @@ services:
     depends_on:
       milvus:
         condition: service_healthy
+    env_file:
+      - ./rag-api/.env
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - API_KEYS=${API_KEYS}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
-      - STORAGE_TYPE=${STORAGE_TYPE:-sqlite}
-      - SQLITE_PATH=${SQLITE_PATH:-data/chat_sessions.db}
-      - ENABLE_MIGRATION=${ENABLE_MIGRATION:-true}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s

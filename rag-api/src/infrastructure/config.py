@@ -1,12 +1,15 @@
 """Configuration settings for the application."""
 
 import os
+from pathlib import Path
 from typing import List
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the project root
+project_root = Path(__file__).parent.parent.parent
+env_file = project_root / ".env"
+load_dotenv(env_file)
 
 
 @dataclass
