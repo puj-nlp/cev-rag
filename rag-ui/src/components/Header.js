@@ -23,24 +23,13 @@ const Header = () => {
               }} 
             />
             <Typography
-              variant="h6"
               noWrap
-              component={Link}
-              to="/"
               sx={{
                 fontWeight: 700,
-                color: '#B8860B',
-                textDecoration: 'none',
-                fontFamily: 'oblique sans-serif',
-                fontSize: '28px',
-                letterSpacing: '0.5px',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-                '&:hover': {
-                  color: '#DAA520',
-                }
+                color: 'primary.main'
               }}
             >
-              WINDOW TO TRUTH
+              Ventana a la Verdad!
             </Typography>
           </Box>
           
@@ -64,17 +53,23 @@ const Header = () => {
               sx={{ 
                 mx: 1.5, 
                 color: 'primary.main', 
-                opacity: location.pathname === '/about' ? 1 : 0.7,
+                opacity: location.pathname === '/' ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
               }}
             >
               About
             </Button>
             <IconButton 
-              color="inherit" 
-              sx={{ ml: 1.5 }}
-              component={Link}
-              to="/help"
+              component="a"
+              href="https://github.com/puj-nlp/cev-rag"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ 
+                mx: 1.5, 
+                color: 'primary.main', 
+                opacity: location.pathname === '/' ? 1 : 0.7,
+                '&:hover': { opacity: 1, backgroundColor: '#917D26' }
+              }}
             >
               <QuestionMark sx={{ fontSize: '1.2rem' }} />
             </IconButton>

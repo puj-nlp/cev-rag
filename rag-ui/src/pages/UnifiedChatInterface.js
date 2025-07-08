@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Container, Box, Typography, TextField, Button, IconButton,
-  CircularProgress, Paper, Grid, Avatar
+  CircularProgress, Paper, Grid, Avatar, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import { 
   Add as AddIcon, 
   Delete as DeleteIcon, 
   Send as SendIcon,
   Person as PersonIcon,
-  SmartToy as BotIcon
+  SmartToy as BotIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -440,113 +441,240 @@ const UnifiedChatInterface = () => {
                   order: msg.is_bot ? 2 : 1
                 }}>
                   {msg.is_bot ? (
-                    <ReactMarkdown
-                      components={{
-                        h3: ({ children }) => {
+                    <Box>
+                      <ReactMarkdown
+                        components={{                        h3: ({ children }) => {
                           if (children && children.toString().toLowerCase().includes('sources')) {
-                            return (
-                              <Typography 
-                                variant="h6" 
-                                sx={{ 
-                                  mt: 3, 
-                                  mb: 2, 
-                                  fontWeight: 'bold',
-                                  fontStyle: 'italic',
-                                  color: '#1976d2',
-                                  borderBottom: '2px solid #1976d2',
-                                  pb: 1
-                                }}
-                              >
-                                {children}
-                              </Typography>
-                            );
+                            // Hide sources section completely
+                            return null;
                           }
                           return <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>{children}</Typography>;
                         },
-                        p: ({ children }) => {
-                          const text = children?.toString() || '';
-                          // Detect if this is a source citation
-                          if (text.includes('ISBN') && text.includes('CEV')) {
+                          p: ({ children }) => {
+                            const text = children?.toString() || '';
+                            // Hide source citations and "Sources" text completely
+                            if (text.includes('ISBN') && text.includes('CEV') || 
+                                text.toLowerCase().includes('sources') ||
+                                text.toLowerCase() === 'sources') {
+                              return null;
+                            }
+                            return <Typography variant="body1" sx={{ mb: 1.5, lineHeight: 1.6 }}>{children}</Typography>;
+                          },
+                          ol: ({ children }) => (
+                            <Box component="ol" sx={{ pl: 2, mb: 2 }}>
+                              {children}
+                            </Box>
+                          ),
+                          ul: ({ children }) => (
+                            <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+                              {children}
+                            </Box>
+                          ),
+                          li: ({ children }) => {
+                            const text = children?.toString() || '';
+                            // Hide source citations and "Sources" text in list items
+                            if (text.includes('ISBN') && text.includes('CEV') || 
+                                text.toLowerCase().includes('sources') ||
+                                text.toLowerCase() === 'sources') {
+                              return null;
+                            }
                             return (
-                              <Box sx={{ 
-                                mb: 1.5,
-                                p: 1.5,
-                                bgcolor: '#f8f9fa',
-                                borderLeft: '4px solid #1976d2',
-                                borderRadius: '0 4px 4px 0'
-                              }}>
-                                <Typography 
-                                  variant="body2" 
-                                  sx={{ 
-                                    fontStyle: 'italic',
-                                    color: '#333',
-                                    lineHeight: 1.5
-                                  }}
-                                >
-                                  {children}
-                                </Typography>
+                              <Box component="li" sx={{ mb: 0.5 }}>
+                                <Typography variant="body1">{children}</Typography>
                               </Box>
                             );
-                          }
-                          return <Typography variant="body1" sx={{ mb: 1.5, lineHeight: 1.6 }}>{children}</Typography>;
-                        },
-                        ol: ({ children }) => (
-                          <Box component="ol" sx={{ pl: 2, mb: 2 }}>
-                            {children}
-                          </Box>
-                        ),
-                        ul: ({ children }) => (
-                          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
-                            {children}
-                          </Box>
-                        ),
-                        li: ({ children }) => {
-                          const text = children?.toString() || '';
-                          // Check if this list item contains a source citation
-                          if (text.includes('ISBN') && text.includes('CEV')) {
-                            return (
-                              <Box component="li" sx={{ mb: 1.5 }}>
-                                <Box sx={{ 
-                                  p: 1.5,
-                                  bgcolor: '#f8f9fa',
-                                  borderLeft: '4px solid #1976d2',
-                                  borderRadius: '0 4px 4px 0',
-                                  ml: 1
-                                }}>
+                          },
+                          strong: ({ children }) => (
+                            <Typography component="span" sx={{ fontWeight: 'bold' }}>
+                              {children}
+                            </Typography>
+                          ),
+                          em: ({ children }) => (
+                            <Typography component="span" sx={{ fontStyle: 'italic' }}>
+                              {children}
+                            </Typography>
+                          ),
+                          references: ({ children }) => (
+                            <Box sx={{ 
+                              mt: 3,
+                              p: 2,
+                              bgcolor: '#f8f9fa',
+                              borderRadius: 2,
+                              border: '1px solid #e0e0e0'
+                            }}>
+                              <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                  mb: 2,
+                                  fontWeight: 'bold',
+                                  color: '#1976d2',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                📚 Referencias
+                              </Typography>
+                              <Box sx={{ pl: 1 }}>
+                                {children}
+                              </Box>
+                            </Box>
+                          )
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                      
+                      {/* Render references if they exist */}
+                      {msg.references && msg.references.length > 0 && (
+                        <Accordion 
+                          defaultExpanded={false}
+                          sx={{ 
+                            mt: 3,
+                            boxShadow: 'none',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: 2,
+                            '&:before': {
+                              display: 'none',
+                            },
+                            '& .MuiAccordionSummary-root': {
+                              backgroundColor: '#f8f9fa',
+                              borderRadius: '8px 8px 0 0',
+                              minHeight: 48,
+                              '&.Mui-expanded': {
+                                minHeight: 48,
+                                borderRadius: '8px 8px 0 0',
+                              }
+                            },
+                            '& .MuiAccordionDetails-root': {
+                              backgroundColor: '#f8f9fa',
+                              borderRadius: '0 0 8px 8px',
+                              pt: 0
+                            }
+                          }}
+                        >
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="references-content"
+                            id="references-header"
+                          >
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontWeight: 'bold',
+                                color: '#1976d2',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1
+                              }}
+                            >
+                              📚 Referencias ({msg.references.length})
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <Box sx={{ pl: 1 }}>
+                              {msg.references.map((ref, refIndex) => (
+                                <Box 
+                                  key={refIndex}
+                                  sx={{ 
+                                    mb: 2,
+                                    p: 1.5,
+                                    bgcolor: '#ffffff',
+                                    borderLeft: '4px solid #1976d2',
+                                    borderRadius: '0 4px 4px 0',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                  }}
+                                >
                                   <Typography 
                                     variant="body2" 
                                     sx={{ 
-                                      fontStyle: 'italic',
-                                      color: '#333',
+                                      fontWeight: 'bold',
+                                      color: '#1976d2',
+                                      mb: 0.5
+                                    }}
+                                  >
+                                    [{ref.number}]
+                                  </Typography>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      mb: 1,
                                       lineHeight: 1.5
                                     }}
                                   >
-                                    {children}
+                                    {ref.title}
                                   </Typography>
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                    {ref.source_id && (
+                                      <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                          bgcolor: '#e3f2fd',
+                                          color: '#1976d2',
+                                          px: 1,
+                                          py: 0.5,
+                                          borderRadius: 1,
+                                          fontWeight: 'medium'
+                                        }}
+                                      >
+                                        {ref.source_id}
+                                      </Typography>
+                                    )}
+                                    {ref.page && (
+                                      <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                          bgcolor: '#f3e5f5',
+                                          color: '#7b1fa2',
+                                          px: 1,
+                                          py: 0.5,
+                                          borderRadius: 1,
+                                          fontWeight: 'medium'
+                                        }}
+                                      >
+                                        Pág. {ref.page}
+                                      </Typography>
+                                    )}
+                                    {ref.year && (
+                                      <Typography 
+                                        variant="caption" 
+                                        sx={{ 
+                                          bgcolor: '#e8f5e8',
+                                          color: '#2e7d32',
+                                          px: 1,
+                                          py: 0.5,
+                                          borderRadius: 1,
+                                          fontWeight: 'medium'
+                                        }}
+                                      >
+                                        {ref.year}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                  {ref.url && (
+                                    <Typography 
+                                      component="a"
+                                      href={ref.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      variant="caption"
+                                      sx={{ 
+                                        color: '#1976d2',
+                                        textDecoration: 'none',
+                                        '&:hover': {
+                                          textDecoration: 'underline'
+                                        }
+                                      }}
+                                    >
+                                      🔗 Ver fuente completa
+                                    </Typography>
+                                  )}
                                 </Box>
-                              </Box>
-                            );
-                          }
-                          return (
-                            <Box component="li" sx={{ mb: 0.5 }}>
-                              <Typography variant="body1">{children}</Typography>
+                              ))}
                             </Box>
-                          );
-                        },
-                        strong: ({ children }) => (
-                          <Typography component="span" sx={{ fontWeight: 'bold' }}>
-                            {children}
-                          </Typography>
-                        ),
-                        em: ({ children }) => (
-                          <Typography component="span" sx={{ fontStyle: 'italic' }}>
-                            {children}
-                          </Typography>
-                        )
-                      }}
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
+                          </AccordionDetails>
+                        </Accordion>
+                      )}
+                    </Box>
                   ) : (
                     <Typography>{msg.content}</Typography>
                   )}
