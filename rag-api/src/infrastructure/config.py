@@ -27,6 +27,14 @@ class OpenAIConfig:
 
 
 @dataclass
+class DatabaseConfig:
+    """Database configuration settings."""
+    storage_type: str  # "sqlite" or "memory"
+    sqlite_path: str
+    enable_migration: bool = True
+
+
+@dataclass
 class MilvusConfig:
     """Milvus configuration settings."""
     host: str
@@ -47,6 +55,7 @@ class ConfigService:
     
     def __init__(self):
         self._api_config = APIConfig()
+        self._database_config = self._load_database_config()
         self._milvus_config = self._load_milvus_config()
         self._openai_config = self._load_openai_config()
         self._app_config = AppConfig()
@@ -91,6 +100,14 @@ class ConfigService:
             embedding_dimension=int(os.getenv("EMBEDDING_DIMENSION", "3072"))
         )
     
+    def _load_database_config(self) -> DatabaseConfig:
+        """Load database configuration from environment."""
+        return DatabaseConfig(
+            storage_type=os.getenv("STORAGE_TYPE", "sqlite"),
+            sqlite_path=os.getenv("SQLITE_PATH", "data/chat_sessions.db"),
+            enable_migration=os.getenv("ENABLE_MIGRATION", "true").lower() == "true"
+        )
+    
     def _load_milvus_config(self) -> MilvusConfig:
         """Load Milvus configuration from environment."""
         host = os.getenv("MILVUS_HOST", "milvus")
@@ -112,6 +129,11 @@ class ConfigService:
             collection_name=collection_name,
             alternative_collection_names=alternative_names
         )
+    
+    @property
+    def database(self) -> DatabaseConfig:
+        """Get database configuration."""
+        return self._database_config
     
     @property
     def api(self) -> APIConfig:

@@ -12,6 +12,7 @@ from ..domain.ports import (
 )
 from ..application.use_cases import ChatSessionUseCase, QuestionAnsweringUseCase
 from ..adapters.repositories.memory_chat_repository import InMemoryChatSessionRepository
+from ..adapters.repositories.sqlite_chat_repository import SQLiteChatSessionRepository
 from ..adapters.repositories.milvus_vector_db import MilvusVectorDatabase
 from ..adapters.external.openai_services import OpenAIEmbeddingService, OpenAILLMService
 from .services import DefaultRAGContextBuilder, DefaultTimestampService
@@ -22,7 +23,16 @@ from .config import config_service
 @lru_cache()
 def get_chat_repository() -> ChatSessionRepository:
     """Get chat session repository instance."""
-    return InMemoryChatSessionRepository()
+    database_config = config_service.database
+    
+    if database_config.storage_type == "sqlite":
+        # Ensure the data directory exists
+        import os
+        db_path = database_config.sqlite_path
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        return SQLiteChatSessionRepository(db_path)
+    else:
+        return InMemoryChatSessionRepository()
 
 
 @lru_cache()
