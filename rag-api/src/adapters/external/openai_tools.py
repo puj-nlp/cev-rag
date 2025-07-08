@@ -64,7 +64,7 @@ def get_rag_context_for_tools(question: str) -> dict:
             for doc in rag_context.documents:
                 # Extract metadata consistently
                 title = doc.metadata.get("title") or doc.original_fields.get("title") or "Untitled document"
-                url = doc.metadata.get("link", "")
+                url = doc.metadata.get("link") or doc.metadata.get("url") or ""
                 page = doc.metadata.get("page") or doc.original_fields.get("page") or ""
                 source_id = doc.metadata.get("source_id") or doc.original_fields.get("source_id") or ""
                 
@@ -165,9 +165,9 @@ CITATION REQUIREMENTS:
 SOURCES SECTION FORMAT:
 After the main text, include:
 "Sources" (exactly as shown)
-1. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
-2. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
-3. Full document title. (Year). Publisher. ISBN (if available)., Page X. Link
+1. Full document title. (Year). Publisher. ISBN (if available)., Page X. https://full-url-here.com
+2. Full document title. (Year). Publisher. ISBN (if available)., Page X. https://full-url-here.com
+3. Full document title. (Year). Publisher. ISBN (if available)., Page X. https://full-url-here.com
 
 The Sources section must include ALL documents referenced by the numbered citations [1], [2], [3], etc.
 
@@ -186,9 +186,9 @@ La "Paz Grande" es un concepto desarrollado por la Comisión de la Verdad de Col
 La "Paz Grande" también se refiere al entendimiento del conflicto armado en Colombia como parte de un complejo entramado de factores políticos, económicos, culturales y de narcotráfico, donde las responsabilidades son compartidas y colectivas [3].
 
 Sources
-1. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 22. Link
-2. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 38. Link
-3. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 46. Link
+1. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 22. https://www.comisiondelaverdad.co/convocatoria-la-paz-grande
+2. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 38. https://www.comisiondelaverdad.co/convocatoria-la-paz-grande
+3. Convocatoria a la paz grande: Declaración de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición. (2022). Colombia. Comisión de la Verdad. ISBN 978-958-53874-3-0., Page 46. https://www.comisiondelaverdad.co/convocatoria-la-paz-grande
 
 CRITICAL: Every citation number [1], [2], [3] used in the text MUST have a corresponding entry in the Sources section.
 
@@ -243,7 +243,7 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
             # If there are no tool calls, return the final response
             if not tool_calls:
                 # Format the response with sources section
-                formatted_response = _format_response_with_sources(
+                formatted_response, filtered_references = _format_response_with_sources(
                     response_message.content, 
                     collected_contexts
                 )
@@ -251,7 +251,7 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
                     "content": formatted_response,
                     "is_bot": True,
                     "contexts": collected_contexts,
-                    "references": _extract_references_from_contexts(collected_contexts)
+                    "references": filtered_references
                 }
             
             # Process each tool call
@@ -305,7 +305,7 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
         )
         
         # Format the final response with sources section
-        formatted_final_response = _format_response_with_sources(
+        formatted_final_response, filtered_references = _format_response_with_sources(
             final_response.choices[0].message.content, 
             collected_contexts
         )
@@ -314,7 +314,7 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
             "content": formatted_final_response,
             "is_bot": True,
             "contexts": collected_contexts,
-            "references": _extract_references_from_contexts(collected_contexts)
+            "references": filtered_references
         }
     
     except Exception as e:
@@ -327,20 +327,29 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
         }
 
 
-def _format_response_with_sources(content: str, collected_contexts: List[Dict]) -> str:
+def _format_response_with_sources(content: str, collected_contexts: List[Dict]) -> tuple[str, List[Dict]]:
     """Format the response with a proper Sources section in the desired style."""
     if not collected_contexts:
-        return content
+        return content, []
     
     # Extract references
+    
     references = _extract_references_from_contexts(collected_contexts)
-    
     if not references:
-        return content
+        return content, []
     
-    # If content already has a Sources section, don't add another
-    if "Sources" in content or "Fuentes" in content:
-        return content
+    # If content already has a Sources section, remove it to replace with our enhanced version
+    import re
+    
+    # Check if there's already a Sources section and remove it
+    sources_pattern = r'\n\nSources\n.*$'
+    if "Sources" in content:
+        print("DEBUG: Found existing Sources section, will replace it with URLs")
+        content = re.sub(sources_pattern, '', content, flags=re.DOTALL)
+    elif "Fuentes" in content:
+        print("DEBUG: Found existing Fuentes section, will replace it with URLs")
+        fuentes_pattern = r'\n\nFuentes\n.*$'
+        content = re.sub(fuentes_pattern, '', content, flags=re.DOTALL)
     
     # Find all citation numbers in the content to ensure we have all referenced sources
     import re
@@ -361,6 +370,9 @@ def _format_response_with_sources(content: str, collected_contexts: List[Dict]) 
         # If no citations found, include first 3 references
         max_sources = min(3, len(references))
     
+    # Filter references to only include those that will be shown in Sources section
+    filtered_references = references[:max_sources]
+
     for i in range(max_sources):
         if i < len(references):
             ref = references[i]
@@ -369,11 +381,15 @@ def _format_response_with_sources(content: str, collected_contexts: List[Dict]) 
                 source_line += f" ISBN {ref['isbn']}."
             if ref.get('page'):
                 source_line += f", Page {ref['page']}."
+            # Incluir la URL con texto descriptivo si existe en los datos de Milvus
             if ref.get('url'):
-                source_line += f" {ref['url']}"
+                print(f"DEBUG: Reference {i+1} has URL: {ref['url']}")
+                source_line += f" [Ver documento]({ref['url']})"
+            else:
+                print(f"DEBUG: Reference {i+1} has no URL. Full ref: {ref}")
             sources_section += source_line
     
-    return content + sources_section
+    return content + sources_section, filtered_references
 
 
 def _extract_references_from_contexts(collected_contexts: List[Dict]) -> List[Dict]:
@@ -395,15 +411,43 @@ def _extract_references_from_contexts(collected_contexts: List[Dict]) -> List[Di
                 continue
             seen_references.add(unique_id)
             
-            # Get URL from metadata or original_fields if available
+            # Get URL specifically from the "link" field in Milvus
             url = None
-            if "metadata" in doc:
-                url = doc["metadata"].get("link") or doc["metadata"].get("url")
-            if not url and "original_fields" in doc:
-                url = doc["original_fields"].get("link") or doc["original_fields"].get("url")
+            print(f"DEBUG: Full document structure: {doc}")
             
-            # Format URL as "Link" if available
-            formatted_url = "Link" if url else None
+            # First check if there's a direct link field
+            if "link" in doc:
+                url = doc["link"]
+                print(f"DEBUG: Direct link field found: {url}")
+            
+            # Check metadata
+            if not url and "metadata" in doc:
+                metadata = doc["metadata"]
+                print(f"DEBUG: Metadata keys: {list(metadata.keys()) if metadata else 'No metadata'}")
+                if metadata:
+                    url = metadata.get("link") or metadata.get("url")
+                    print(f"DEBUG: From metadata - URL: {url}")
+            
+            # Check original_fields
+            if not url and "original_fields" in doc:
+                original_fields = doc["original_fields"]
+                print(f"DEBUG: Original fields keys: {list(original_fields.keys()) if original_fields else 'No original_fields'}")
+                if original_fields:
+                    url = original_fields.get("link") or original_fields.get("url")
+                    print(f"DEBUG: From original_fields - URL: {url}")
+            
+            # Si aún no se encuentra URL, comprobar si el campo 'link' existe con otro nombre
+            if not url and "metadata" in doc and doc["metadata"]:
+                # Verificar todos los campos que puedan contener enlaces
+                for key in doc["metadata"]:
+                    if key.lower() in ["link", "url", "enlace", "web", "website"]:
+                        url = doc["metadata"][key]
+                        print(f"DEBUG: Found URL in metadata key '{key}': {url}")
+                        break
+            
+            print(f"DEBUG: Final URL for reference {ref_number}: {url}")
+            
+            # No agregar URLs predeterminadas - usar solo la URL que viene de Milvus
             
             references.append({
                 "number": ref_number,
@@ -411,9 +455,9 @@ def _extract_references_from_contexts(collected_contexts: List[Dict]) -> List[Di
                 "source_id": source_id,
                 "page": page,
                 "year": "2022",
-                "publisher": "Colombia. Comisión de la Verdad",
+                "publisher": "CEV",
                 "isbn": "978-958-53874-3-0",
-                "url": formatted_url  # Use "Link" format as in your example
+                "url": url  # Usar el valor real de la URL
             })
             ref_number += 1
             

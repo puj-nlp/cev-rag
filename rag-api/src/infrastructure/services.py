@@ -74,6 +74,19 @@ class DefaultRAGContextBuilder(RAGContextBuilder):
         # Get URL from metadata if available
         url = document.metadata.get("link") or document.metadata.get("url")
         
+        # If not found in metadata, try original_fields
+        if not url and document.original_fields:
+            url = document.original_fields.get("link") or document.original_fields.get("url")
+        
+        # Log for debugging
+        if url:
+            print(f"Reference {number}: Found URL: {url}")
+        else:
+            print(f"Reference {number}: No URL found in metadata or original_fields")
+            print(f"Available metadata keys: {list(document.metadata.keys())}")
+            if document.original_fields:
+                print(f"Available original_fields keys: {list(document.original_fields.keys())}")
+        
         return Reference(
             number=number,
             title=title,

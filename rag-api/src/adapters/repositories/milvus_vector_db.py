@@ -112,6 +112,8 @@ class MilvusVectorDatabase(VectorDatabase):
             schema = self._collection.schema
             output_fields = [field.name for field in schema.fields if field.name != "embedding"]
             
+            print(f"DEBUG: Available schema fields: {[field.name for field in schema.fields]}")
+            print(f"DEBUG: Output fields for search: {output_fields}")
             print(f"Searching with embedding dimension: {len(embedding)}")
             
             # Perform the search
@@ -125,7 +127,10 @@ class MilvusVectorDatabase(VectorDatabase):
             
             documents = []
             for hit in search_results[0]:
+                print(f"DEBUG: Hit object: {hit}")
+                print(f"DEBUG: Hit entity: {hit.entity}")
                 doc_dict = hit.entity.to_dict()
+                print(f"DEBUG: Hit entity.to_dict(): {doc_dict}")
                 
                 # Extract content and metadata
                 content = self._extract_content(doc_dict)
@@ -166,11 +171,20 @@ class MilvusVectorDatabase(VectorDatabase):
         metadata = {}
         
         # Standard metadata fields
-        metadata_fields = ["title", "source_id", "page", "link", "author", "date"]
+        metadata_fields = ["title", "source_id", "page", "link", "url", "author", "date", "type"]
         
         for field in metadata_fields:
             if field in doc_dict:
                 metadata[field] = doc_dict[field]
+        
+        # Log for debugging
+        print(f"DEBUG: doc_dict keys: {list(doc_dict.keys())}")
+        print(f"DEBUG: doc_dict content: {doc_dict}")
+        
+        if "link" in doc_dict:
+            print(f"Found link field: {doc_dict['link']}")
+        else:
+            print(f"No link field found. Available fields: {list(doc_dict.keys())}")
         
         return metadata
     
