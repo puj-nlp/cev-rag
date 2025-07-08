@@ -9,4 +9,4 @@ __pycache__/
 !**/data/.gitkeep
 monolith_old
 .idea
-.idea/*
+.idea/*notebook/text_chunks_and_embeddings_df.csv
