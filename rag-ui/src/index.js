@@ -5,7 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import App from './App';
 
-// Crear un tema personalizado para Ventana a la Verdad
+// Create a custom theme for Window to Truth
 const theme = createTheme({
   palette: {
     primary: {

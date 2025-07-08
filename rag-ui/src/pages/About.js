@@ -5,14 +5,14 @@ const About = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
-        Welcome to Ventana a la Verdad!
+        Welcome to Window to Truth!
       </Typography>
       
       <Grid container spacing={6}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 4, borderRadius: 2 }}>
             <Typography variant="body1" paragraph>
-              Ventana a la Verdad is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.
+              Window to Truth is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.
             </Typography>
             
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>

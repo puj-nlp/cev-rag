@@ -15,30 +15,30 @@ const HomePage = () => {
     if (!question.trim()) return;
     
     try {
-      // Crear un nuevo chat
+      // Create a new chat
       const response = await axios.post(`${API_URL}/chats`, {
-        title: 'Nueva consulta'
+        title: 'New Chat'
       });
       
       const chatId = response.data.id;
       
-      // Enviar el primer mensaje al chat
+      // Send the first message to the chat
       await axios.post(`${API_URL}/chats/${chatId}/messages`, {
         question: question,
         chat_id: chatId
       });
       
-      // Navegar al nuevo chat
+      // Navigate to the new chat
       navigate(`/chats/${chatId}`);
     } catch (error) {
-      console.error('Error al crear el chat:', error);
+      console.error('Error creating chat:', error);
     }
   };
 
   return (
     <Container>
       <Grid container spacing={4} sx={{ pt: 6, pb: 8 }}>
-        {/* Columna izquierda - Sidebar de Chats */}
+        {/* Left column - Chats Sidebar */}
         <Grid item xs={12} md={3}>
           <Box sx={{ backgroundColor: '#f9fafb', p: 2, borderRadius: 2, height: '80vh' }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
@@ -110,11 +110,11 @@ const HomePage = () => {
               mb: 3
             }}>
               <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1 }}>
-                Ventana a la Verdad
+                Window to Truth
               </Typography>
               <Box sx={{ backgroundColor: 'white', p: 2, borderRadius: 1, mb: 2 }}>
                 <Typography variant="body1">
-                  Hola, soy Ventana a la Verdad. ¿Sobre qué testimonios te gustaría conocer hoy?
+                  Hello, I'm Window to Truth. What testimonies would you like to learn about today?
                 </Typography>
               </Box>
             </Box>
@@ -142,11 +142,11 @@ const HomePage = () => {
               p: 2
             }}>
               <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1 }}>
-                Ventana a la Verdad
+                Window to Truth
               </Typography>
               <Box sx={{ backgroundColor: 'white', p: 2, borderRadius: 1, mb: 2 }}>
                 <Typography variant="body1">
-                  Los testimonios de víctimas del desplazamiento forzado revelan las duras realidades de aquellos obligados a abandonar sus hogares. Muchas de estas historias destacan la pérdida de tierras, la desintegración familiar y las dificultades para reconstruir sus vidas en nuevos lugares. ¿Te gustaría conocer algún testimonio específico?
+                  The testimonies of victims of forced displacement reveal the harsh realities of those forced to leave their homes. Many of these stories highlight the loss of land, family disintegration, and the difficulties of rebuilding their lives in new places. Would you like to know about any specific testimony?
                 </Typography>
               </Box>
             </Box>

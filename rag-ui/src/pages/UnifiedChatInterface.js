@@ -20,11 +20,11 @@ const UnifiedChatInterface = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
   
-  // Generar o recuperar ID de sesión único para este navegador
+  // Generate or retrieve unique session ID for this browser
   const getSessionId = () => {
     let sessionId = localStorage.getItem('ventana_session_id');
     if (!sessionId) {
-      // Generar un ID único usando timestamp + random
+      // Generate a unique ID using timestamp + random
       sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('ventana_session_id', sessionId);
     }
@@ -50,7 +50,7 @@ const UnifiedChatInterface = () => {
     fetchChats();
   }, []);
 
-  // Cargar chat específico cuando cambia el chatId
+  // Load specific chat when chatId changes
   useEffect(() => {
     if (chatId) {
       fetchChat(chatId);
@@ -59,7 +59,7 @@ const UnifiedChatInterface = () => {
     }
   }, [chatId]);
 
-  // Hacer scroll al final del chat cuando hay nuevos mensajes
+  // Scroll to bottom of chat when there are new messages
   useEffect(() => {
     if (activeChat?.messages) {
       scrollToBottom();
@@ -69,7 +69,7 @@ const UnifiedChatInterface = () => {
   const fetchChats = async () => {
     try {
       setLoadingChats(true);
-      // Enviar sessionId como parámetro para filtrar chats por sesión
+      // Send sessionId as parameter to filter chats by session
       const response = await axios.get(`${API_URL}/chats?session_id=${sessionId}`);
       setChats(response.data);
       setError(null);
@@ -103,8 +103,8 @@ const UnifiedChatInterface = () => {
   const handleCreateNewChat = async () => {
     try {
       const response = await axios.post(`${API_URL}/chats`, {
-        title: 'Nuevo Chat',
-        session_id: sessionId  // Incluir session_id al crear el chat
+        title: 'New Chat',
+        session_id: sessionId  // Include session_id when creating the chat
       });
       
       const newChat = response.data;
@@ -124,7 +124,7 @@ const UnifiedChatInterface = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este chat?')) {
+    if (!window.confirm('Are you sure you want to delete this chat?')) {
       return;
     }
     
@@ -132,7 +132,7 @@ const UnifiedChatInterface = () => {
       await axios.delete(`${API_URL}/chats/${id}`);
       setChats(chats.filter(chat => chat.id !== id));
       
-      // Si el chat eliminado es el activo, navegar al inicio
+      // If the deleted chat is the active one, navigate to home
       if (chatId === id.toString()) {
         navigate('/');
       }
@@ -185,7 +185,7 @@ const UnifiedChatInterface = () => {
       const response = await axios.post(`${API_URL}/chats/${activeChat.id}/messages`, {
         question: userMessage,
         chat_id: activeChat.id,
-        session_id: sessionId  // Incluir session_id en los mensajes
+        session_id: sessionId  // Include session_id in messages
       });
       
       // Add the bot response to the chat
@@ -209,20 +209,20 @@ const UnifiedChatInterface = () => {
     await handleCreateNewChat();
   };
 
-  // Función opcional para limpiar la sesión (puede ser útil para testing o soporte)
+  // Optional function to clear session (can be useful for testing or support)
   const clearSession = () => {
     localStorage.removeItem('ventana_session_id');
     setChats([]);
     setActiveChat(null);
     navigate('/');
-    // Recargar para generar nueva sesión
+    // Reload to generate new session
     window.location.reload();
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -235,10 +235,10 @@ const UnifiedChatInterface = () => {
         Chats
       </Typography>
       
-      {/* Indicador de sesión (solo visible en desarrollo) */}
+      {/* Session indicator (only visible in development) */}
       {process.env.NODE_ENV === 'development' && (
         <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-          Sesión: {sessionId.slice(-8)}
+          Session: {sessionId.slice(-8)}
         </Typography>
       )}
       
@@ -254,7 +254,7 @@ const UnifiedChatInterface = () => {
         onClick={handleCreateNewChat}
         startIcon={<AddIcon />}
       >
-        Nuevo Chat
+        New Chat
       </Button>
       
       <Box sx={{ mt: 2 }}>
@@ -264,7 +264,7 @@ const UnifiedChatInterface = () => {
           </Box>
         ) : chats.length === 0 ? (
           <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
-            No hay chats aún. Crea uno nuevo para empezar.
+            No chats yet. Create a new one to get started.
           </Typography>
         ) : (
           <Box sx={{ overflowY: 'auto', maxHeight: '60vh' }}>
@@ -321,10 +321,10 @@ const UnifiedChatInterface = () => {
       height: '70vh'
     }}>
       <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-        ¡Bienvenido a Ventana a la Verdad!
+        Welcome to Window to Truth!
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, textAlign: 'center', mb: 4 }}>
-        Explora testimonios de la Comisión de la Verdad de Colombia. Haz preguntas y obtén respuestas basadas en la información recopilada.
+        Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.
       </Typography>
       <Button 
         variant="contained" 
@@ -332,7 +332,7 @@ const UnifiedChatInterface = () => {
         onClick={handleStartNewChatFromWelcome}
         sx={{ borderRadius: 2, px: 4, py: 1 }}
       >
-        Iniciar Nuevo Chat
+        Start New Chat
       </Button>
     </Box>
   );
@@ -350,7 +350,7 @@ const UnifiedChatInterface = () => {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
           <Typography variant="body1" color="text.secondary">
-            Chat no encontrado
+            Chat not found
           </Typography>
         </Box>
       );
@@ -398,8 +398,8 @@ const UnifiedChatInterface = () => {
                 <BotIcon sx={{ fontSize: 32 }} />
               </Avatar>
               <Typography variant="body1" color="text.secondary" textAlign="center">
-                ¡Hola! Soy Ventana a la Verdad.<br />
-                Pregúntame sobre los testimonios de la Comisión de la Verdad de Colombia.
+                Hello! I'm Window to Truth.<br />
+                Ask me about the testimonies from Colombia's Truth Commission.
               </Typography>
             </Box>
           ) : (
@@ -414,7 +414,7 @@ const UnifiedChatInterface = () => {
                   justifyContent: msg.is_bot ? 'flex-start' : 'flex-end'
                 }}
               >
-                {/* Avatar - Solo mostrar para mensajes del bot */}
+                {/* Avatar - Only show for bot messages */}
                 {msg.is_bot && (
                   <Avatar 
                     sx={{ 
@@ -429,7 +429,7 @@ const UnifiedChatInterface = () => {
                   </Avatar>
                 )}
                 
-                {/* Mensaje */}
+                {/* Message */}
                 <Box sx={{ 
                   maxWidth: '80%',
                   p: 2, 
@@ -440,7 +440,111 @@ const UnifiedChatInterface = () => {
                   order: msg.is_bot ? 2 : 1
                 }}>
                   {msg.is_bot ? (
-                    <ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        h3: ({ children }) => {
+                          if (children && children.toString().toLowerCase().includes('sources')) {
+                            return (
+                              <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                  mt: 3, 
+                                  mb: 2, 
+                                  fontWeight: 'bold',
+                                  fontStyle: 'italic',
+                                  color: '#1976d2',
+                                  borderBottom: '2px solid #1976d2',
+                                  pb: 1
+                                }}
+                              >
+                                {children}
+                              </Typography>
+                            );
+                          }
+                          return <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>{children}</Typography>;
+                        },
+                        p: ({ children }) => {
+                          const text = children?.toString() || '';
+                          // Detect if this is a source citation
+                          if (text.includes('ISBN') && text.includes('CEV')) {
+                            return (
+                              <Box sx={{ 
+                                mb: 1.5,
+                                p: 1.5,
+                                bgcolor: '#f8f9fa',
+                                borderLeft: '4px solid #1976d2',
+                                borderRadius: '0 4px 4px 0'
+                              }}>
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    fontStyle: 'italic',
+                                    color: '#333',
+                                    lineHeight: 1.5
+                                  }}
+                                >
+                                  {children}
+                                </Typography>
+                              </Box>
+                            );
+                          }
+                          return <Typography variant="body1" sx={{ mb: 1.5, lineHeight: 1.6 }}>{children}</Typography>;
+                        },
+                        ol: ({ children }) => (
+                          <Box component="ol" sx={{ pl: 2, mb: 2 }}>
+                            {children}
+                          </Box>
+                        ),
+                        ul: ({ children }) => (
+                          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+                            {children}
+                          </Box>
+                        ),
+                        li: ({ children }) => {
+                          const text = children?.toString() || '';
+                          // Check if this list item contains a source citation
+                          if (text.includes('ISBN') && text.includes('CEV')) {
+                            return (
+                              <Box component="li" sx={{ mb: 1.5 }}>
+                                <Box sx={{ 
+                                  p: 1.5,
+                                  bgcolor: '#f8f9fa',
+                                  borderLeft: '4px solid #1976d2',
+                                  borderRadius: '0 4px 4px 0',
+                                  ml: 1
+                                }}>
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      fontStyle: 'italic',
+                                      color: '#333',
+                                      lineHeight: 1.5
+                                    }}
+                                  >
+                                    {children}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            );
+                          }
+                          return (
+                            <Box component="li" sx={{ mb: 0.5 }}>
+                              <Typography variant="body1">{children}</Typography>
+                            </Box>
+                          );
+                        },
+                        strong: ({ children }) => (
+                          <Typography component="span" sx={{ fontWeight: 'bold' }}>
+                            {children}
+                          </Typography>
+                        ),
+                        em: ({ children }) => (
+                          <Typography component="span" sx={{ fontStyle: 'italic' }}>
+                            {children}
+                          </Typography>
+                        )
+                      }}
+                    >
                       {msg.content}
                     </ReactMarkdown>
                   ) : (
@@ -448,7 +552,7 @@ const UnifiedChatInterface = () => {
                   )}
                 </Box>
 
-                {/* Avatar del usuario - Solo mostrar para mensajes del usuario */}
+                {/* User avatar - Only show for user messages */}
                 {!msg.is_bot && (
                   <Avatar 
                     sx={{ 
@@ -480,7 +584,7 @@ const UnifiedChatInterface = () => {
         >
           <TextField
             fullWidth
-            placeholder="Escribe tu pregunta..."
+            placeholder="Write your question..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={sending}
@@ -494,7 +598,7 @@ const UnifiedChatInterface = () => {
                   type="submit"
                   sx={{ ml: 1, borderRadius: 1 }}
                 >
-                  {sending ? <CircularProgress size={24} /> : 'Enviar'}
+                  {sending ? <CircularProgress size={24} /> : 'Send'}
                 </Button>
               ),
               sx: { 
