@@ -5,10 +5,8 @@ import {
   CircularProgress, Avatar, Paper, Grid
 } from '@mui/material';
 import { Send as SendIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { apiService } from '../services/api';
 
 const ChatView = () => {
   const { chatId } = useParams();

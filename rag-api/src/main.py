@@ -16,8 +16,26 @@ def create_app() -> FastAPI:
     # Create FastAPI app
     app = FastAPI(
         title=api_config.title,
-        description=api_config.description,
-        version=api_config.version
+        description=api_config.description + "\n\n## Authentication\n\nThis API requires an API key for most endpoints. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer YOUR_API_KEY\n```\n\nSee API_AUTH.md for detailed authentication instructions.",
+        version=api_config.version,
+        openapi_tags=[
+            {
+                "name": "health",
+                "description": "Health check endpoints (no authentication required)"
+            },
+            {
+                "name": "chats", 
+                "description": "Chat session management (requires API key)"
+            },
+            {
+                "name": "questions",
+                "description": "Question answering endpoints (requires API key)"
+            },
+            {
+                "name": "admin",
+                "description": "Administrative endpoints (requires API key)"
+            }
+        ]
     )
     
     # Configure CORS

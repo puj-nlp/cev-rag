@@ -12,10 +12,8 @@ import {
   SmartToy as BotIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
-import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { apiService } from '../services/api';
 
 const UnifiedChatInterface = () => {
   const { chatId } = useParams();
@@ -71,12 +69,12 @@ const UnifiedChatInterface = () => {
     try {
       setLoadingChats(true);
       // Send sessionId as parameter to filter chats by session
-      const response = await axios.get(`${API_URL}/chats?session_id=${sessionId}`);
+      const response = await apiService.getChats(sessionId);
       setChats(response.data);
       setError(null);
     } catch (err) {
       console.error('Error loading chats:', err);
-      setError('Could not load chats. Please try again.');
+      setError('Could not load chats. Please check your API configuration.');
     } finally {
       setLoadingChats(false);
     }
@@ -85,12 +83,12 @@ const UnifiedChatInterface = () => {
   const fetchChat = async (id) => {
     try {
       setLoadingChat(true);
-      const response = await axios.get(`${API_URL}/chats/${id}`);
+      const response = await apiService.getChat(id);
       setActiveChat(response.data);
       setError(null);
     } catch (err) {
       console.error('Error loading chat:', err);
-      setError('Could not load chat. Please try again.');
+      setError('Could not load chat. Please check your API configuration.');
       setActiveChat(null);
     } finally {
       setLoadingChat(false);
@@ -103,17 +101,14 @@ const UnifiedChatInterface = () => {
 
   const handleCreateNewChat = async () => {
     try {
-      const response = await axios.post(`${API_URL}/chats`, {
-        title: 'New Chat',
-        session_id: sessionId  // Include session_id when creating the chat
-      });
+      const response = await apiService.createChat('New Chat', sessionId);
       
       const newChat = response.data;
       setChats([newChat, ...chats]);
       navigate(`/chats/${newChat.id}`);
     } catch (err) {
       console.error('Error creating new chat:', err);
-      setError('Could not create chat. Please try again.');
+      setError('Could not create chat. Please check your API configuration.');
     }
   };
 
@@ -130,7 +125,7 @@ const UnifiedChatInterface = () => {
     }
     
     try {
-      await axios.delete(`${API_URL}/chats/${id}`);
+      await apiService.deleteChat(id);
       setChats(chats.filter(chat => chat.id !== id));
       
       // If the deleted chat is the active one, navigate to home
@@ -139,7 +134,7 @@ const UnifiedChatInterface = () => {
       }
     } catch (err) {
       console.error('Error deleting chat:', err);
-      setError('Could not delete chat. Please try again.');
+      setError('Could not delete chat. Please check your API configuration.');
     }
   };
 
@@ -183,11 +178,7 @@ const UnifiedChatInterface = () => {
       setMessage('');
       
       // Send the message to the API
-      const response = await axios.post(`${API_URL}/chats/${activeChat.id}/messages`, {
-        question: userMessage,
-        chat_id: activeChat.id,
-        session_id: sessionId  // Include session_id in messages
-      });
+      const response = await apiService.sendMessage(activeChat.id, userMessage);
       
       // Add the bot response to the chat
       setActiveChat(prev => ({
@@ -200,7 +191,7 @@ const UnifiedChatInterface = () => {
       
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Could not send message. Please try again.');
+      setError('Could not send message. Please check your API configuration.');
     } finally {
       setSending(false);
     }

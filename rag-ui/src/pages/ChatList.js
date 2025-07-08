@@ -5,9 +5,7 @@ import {
   DialogContent, DialogActions, TextField, CircularProgress, List, ListItem
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { apiService } from '../services/api';
 
 const ChatList = () => {
   const navigate = useNavigate();

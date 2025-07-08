@@ -2,13 +2,14 @@
 
 from typing import Dict, Any, Optional, List
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Depends
 from fastapi.responses import FileResponse
 import tempfile
 import os
 import json
 
 from ...infrastructure.dependencies import get_chat_repository
+from ...infrastructure.auth import require_api_key
 from ...adapters.repositories.sqlite_chat_repository import SQLiteChatSessionRepository
 from ...adapters.repositories.migration import ChatStorageMigration
 
@@ -26,34 +27,40 @@ class AdminController:
             "/stats",
             self.get_statistics,
             methods=["GET"],
-            response_model=Dict[str, Any]
+            response_model=Dict[str, Any],
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/search",
             self.search_messages,
             methods=["GET"],
-            response_model=List[Dict[str, Any]]
+            response_model=List[Dict[str, Any]],
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/export",
             self.export_data,
             methods=["GET"],
-            response_class=FileResponse
+            response_class=FileResponse,
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/import",
             self.import_data,
-            methods=["POST"]
+            methods=["POST"],
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/cleanup",
             self.cleanup_old_chats,
-            methods=["DELETE"]
+            methods=["DELETE"],
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/backup",
             self.create_backup,
-            methods=["POST"]
+            methods=["POST"],
+            dependencies=[Depends(require_api_key)]
         )
     
     async def get_statistics(self) -> Dict[str, Any]:

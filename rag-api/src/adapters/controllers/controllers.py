@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import JSONResponse
 
 from ...application.use_cases import ChatSessionUseCase, QuestionAnsweringUseCase
+from ...infrastructure.auth import require_api_key
 from .dto import ChatSessionDTO, MessageDTO, QuestionRequestDTO, ChatRequestDTO, ErrorResponseDTO
 from .mappers import ChatSessionMapper, MessageMapper, QuestionMapper
 
@@ -24,24 +25,28 @@ class ChatController:
             "",
             self.list_chats,
             methods=["GET"],
-            response_model=List[ChatSessionDTO]
+            response_model=List[ChatSessionDTO],
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "",
             self.create_chat,
             methods=["POST"],
-            response_model=ChatSessionDTO
+            response_model=ChatSessionDTO,
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/{chat_id}",
             self.get_chat,
             methods=["GET"],
-            response_model=ChatSessionDTO
+            response_model=ChatSessionDTO,
+            dependencies=[Depends(require_api_key)]
         )
         self.router.add_api_route(
             "/{chat_id}",
             self.delete_chat,
-            methods=["DELETE"]
+            methods=["DELETE"],
+            dependencies=[Depends(require_api_key)]
         )
     
     async def list_chats(self, session_id: str = Query(None, description="Session ID to filter chats")) -> List[ChatSessionDTO]:
@@ -98,7 +103,8 @@ class QuestionController:
             "/{chat_id}/messages",
             self.add_message,
             methods=["POST"],
-            response_model=MessageDTO
+            response_model=MessageDTO,
+            dependencies=[Depends(require_api_key)]
         )
     
     async def add_message(
