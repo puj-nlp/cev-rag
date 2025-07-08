@@ -13,6 +13,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_KEYS=${API_KEYS}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
       - STORAGE_TYPE=${STORAGE_TYPE:-sqlite}

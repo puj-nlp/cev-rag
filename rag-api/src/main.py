@@ -52,15 +52,20 @@ def create_app() -> FastAPI:
     chat_controller = ChatController(get_chat_use_case())
     question_controller = QuestionController(get_question_answering_use_case())
     
+    # Frontend controller (no API key required)
+    from .adapters.controllers.frontend_controller import FrontendController
+    frontend_controller = FrontendController(get_chat_use_case(), get_question_answering_use_case())
+    
     # Import admin controller
     from .adapters.controllers.admin_controller import AdminController
     admin_controller = AdminController()
     
     # Register routes with /api prefix
     app.include_router(health_controller.router, prefix="/api")
-    app.include_router(chat_controller.router, prefix="/api")
-    app.include_router(question_controller.router, prefix="/api")
-    app.include_router(admin_controller.router, prefix="/api")
+    app.include_router(frontend_controller.router, prefix="/api")  # Frontend routes
+    app.include_router(chat_controller.router, prefix="/api")      # API key required
+    app.include_router(question_controller.router, prefix="/api")  # API key required  
+    app.include_router(admin_controller.router, prefix="/api")     # API key required
     
     # Verify system configuration on startup
     @app.on_event("startup")
