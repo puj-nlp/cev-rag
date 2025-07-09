@@ -1,4 +1,3 @@
-# 🕊 Ventana a la Verdad
 
 **Cultural Context-Aware Question-Answering System for the Colombian Truth Commission**  
 Proyecto financiado por el Notre Dame–IBM Technology Ethics Lab
