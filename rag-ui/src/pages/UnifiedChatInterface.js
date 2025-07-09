@@ -629,7 +629,7 @@ const UnifiedChatInterface = () => {
         >
           <TextField
             fullWidth
-            placeholder="Write your question..."
+            placeholder="Write your question...Example: What is the Truth Commission?"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={sending}
