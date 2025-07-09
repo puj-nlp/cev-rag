@@ -9,7 +9,7 @@ const About = () => {
         <Grid container spacing={6}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 4, borderRadius: 2 }}>
-            <Typography variant="body1" paragraph>
+            <Typography variant="h4" paragraph>
               Window to Truth is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.
             </Typography>
             
@@ -29,6 +29,23 @@ const About = () => {
               Our answers include references to ensure the information you receive is reliable and precise. We summarize complex issues to make them easier to understand while providing the necessary depth. You are welcome to ask follow-up questions, and the conversation can continue exploring related topics.
             </Typography>
             
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              About the Truth Commission
+            </Typography>
+            
+            <Typography variant="body1" paragraph>
+              The Commission for the Clarification of Truth, Coexistence, and Non-Repetition was established as part of the 2016 Peace Agreement between the Colombian government and the FARC.
+            </Typography>
+            
+            <Typography variant="body1">
+              Their work between 2018 and 2022 has been crucial for understanding the armed conflict and promoting reconciliation throughout Colombia.
+            </Typography>
+
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
               Resources
             </Typography>
@@ -42,23 +59,24 @@ const About = () => {
                 sx={{ fontWeight: 500 }}
               >
                 Colombian Truth Commission Report
+              </Link>
+              {' '} and {' '}
+              <Link 
+                href="https://legacyproject.nd.edu/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                sx={{ fontWeight: 500 }}
+              >
+                The Legacy Project
               </Link>.
             </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              About the Truth Commission
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
+              Contact
             </Typography>
             
             <Typography variant="body1" paragraph>
-              The Commission for the Clarification of Truth, Coexistence, and Non-Repetition was established as part of the 2016 Peace Agreement between the Colombian government and the FARC.
-            </Typography>
-            
-            <Typography variant="body1">
-              Their work between 2018 and 2022 has been crucial for understanding the armed conflict and promoting reconciliation throughout Colombia.
+              Luis Gabriel Moreno Sandoval
+              morenoluis@javeriana.edu.co
             </Typography>
           </Paper>
           

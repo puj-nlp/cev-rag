@@ -3,6 +3,23 @@ import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton
 import { Link, useLocation } from 'react-router-dom';
 import { GitHub } from '@mui/icons-material';
 
+const LogoVentana = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 400 500" style={{ verticalAlign: 'middle' }}>
+    <g fill="none" stroke="#003366" strokeWidth="16">
+      <rect x="100" y="150" width="200" height="300"></rect>
+      <path d="M100,150 A100,100 0 0 1 300,150"></path>
+      <path d="M100,150 L50,100 L50,400 L100,450"></path>
+      <path d="M300,150 L350,100 L350,400 L300,450"></path>
+      <line x1="200" y1="150" x2="200" y2="450"></line>
+      <line x1="100" y1="250" x2="300" y2="250"></line>
+    </g>
+    <g>
+      <polygon points="200,250 300,400 200,450 200,250" fill="#FCD116"></polygon>
+      <polygon points="200,250 250,400 200,450 200,250" fill="#003366"></polygon>
+    </g>
+  </svg>
+);
+
 const Header = () => {
   const location = useLocation();
 
@@ -12,24 +29,17 @@ const Header = () => {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* Logo and title */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <img 
-              src="/cev_icon.png" 
-              alt="CEV Icon" 
-              style={{ 
-                width: '24px', 
-                height: '24px', 
-                marginRight: '8px',
-                //filter: 'brightness(0) invert(1)' // Makes the icon white
-              }} 
-            />
+            <LogoVentana/>
             <Typography
               noWrap
               sx={{
+                fontFamily: '"Cinzel", serif !important',
                 fontWeight: 700,
-                color: 'primary.main'
+                color: 'primary.main',
+                marginLeft: 1
               }}
             >
-              Ventana a la Verdad!
+              VENTANA A LA VERDAD
             </Typography>
           </Box>
           

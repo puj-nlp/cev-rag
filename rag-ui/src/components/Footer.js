@@ -34,7 +34,7 @@ const Footer = () => {
                 variant="body2" 
                 sx={{ 
                   fontSize: '14px',
-                  fontFamily: '"Source Sans Pro", sans-serif'
+                  fontFamily: '"Inter", sans-serif'
                 }}
               >
                 Proyecto financiado por el Notre Dame–IBM Technology Ethics Lab @2024

@@ -31,6 +31,7 @@ const WindowHeader = styled(Box)(({ theme }) => ({
 
 const WindowTitle = styled(Box)(({ theme }) => ({
   color: 'white',
+  fontFamily: '"Inter", sans-serif !important',
   fontWeight: 600,
   fontSize: '14px',
   display: 'flex',
@@ -81,9 +82,7 @@ const WindowContainer = ({ children }) => {
       <WindowHeader>
         <WindowTitle>
           <TruthIcon />
-          <Typography component="span" sx={{ fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}>
-            Ventana a la Verdad
-          </Typography>
+          
         </WindowTitle>
         <WindowControls>
           <WindowControl color="#ef4444" />

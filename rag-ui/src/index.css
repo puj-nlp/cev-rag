@@ -1,61 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-/* Global font application */
+/* Global font application - Inter as default for UI elements */
 * {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 body {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-weight: 400;
 }
 
-/* All headings use PT Serif */
+/* All headings use Cinzel for elegant titles */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'PT Serif', serif !important;
-  font-weight: 700;
+  font-family: 'Cinzel', serif !important;
+  font-weight: 600;
 }
 
-/* Navigation and branding use PT Serif */
+/* Navigation and branding use Cinzel */
 .MuiAppBar-root .MuiTypography-root {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Cinzel', serif !important;
 }
 
-/* Buttons use PT Serif */
+/* Buttons use Inter for better readability */
 .MuiButton-root {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500;
 }
 
-/* Form elements use PT Serif */
+/* Form elements use Inter */
 .MuiTextField-root label {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 .MuiTextField-root input {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-/* Menu items use PT Serif */
+/* Menu items use Inter */
 .MuiMenuItem-root {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-/* Tabs use PT Serif */
+/* Tabs use Inter */
 .MuiTab-root {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500;
 }
 
-/* All text elements use PT Serif */
+/* UI text elements use Inter */
 p, span, div, a, label, input, textarea, select, button {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
-/* Chat and content specific styles */
+/* Chat and content specific styles - PT Serif for reading content */
 .chat-message {
   font-family: 'PT Serif', serif !important;
 }
 
-/* Markdown content uses PT Serif */
+/* Markdown content uses PT Serif for better reading experience */
 .markdown-content {
   font-family: 'PT Serif', serif !important;
 }
@@ -66,7 +68,7 @@ p, span, div, a, label, input, textarea, select, button {
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  font-family: 'PT Serif', serif !important;
+  font-family: 'Cinzel', serif !important;
   font-weight: 700;
 }
 
@@ -86,4 +88,22 @@ p, span, div, a, label, input, textarea, select, button {
 .markdown-content em {
   font-family: 'PT Serif', serif !important;
   font-style: italic;
+}
+
+/* Welcome screen title styling with Cinzel */
+.welcome-title {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 700;
+}
+
+/* Subtitle and descriptions with Inter */
+.welcome-subtitle {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400;
+}
+
+/* Footer text uses Inter */
+.footer-text {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400;
 }
