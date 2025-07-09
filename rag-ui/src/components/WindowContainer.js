@@ -61,6 +61,7 @@ const WindowContent = styled(Box)(({ theme }) => ({
   background: 'rgba(255, 255, 255, 0.95)',
   position: 'relative',
   display: 'flex',
+  overflow: 'hidden', // Prevent layout issues with collapsible sidebar
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     padding: theme.spacing(2)

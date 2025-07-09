@@ -36,6 +36,9 @@ const UnifiedChatInterface = () => {
   const [chats, setChats] = useState([]);
   const [loadingChats, setLoadingChats] = useState(true);
   
+  // Estado para colapsar/expandir sidebar - por defecto cerrado
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  
   // Estados para el chat activo
   const [activeChat, setActiveChat] = useState(null);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -211,15 +214,21 @@ const UnifiedChatInterface = () => {
     window.location.reload();
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   const renderSidebar = () => (
     <Sidebar
       chats={chats}
       loadingChats={loadingChats}
       sessionId={sessionId}
       chatId={chatId}
+      collapsed={sidebarCollapsed}
       onCreateNewChat={handleCreateNewChat}
       onSelectChat={handleSelectChat}
       onDeleteChat={handleDeleteChat}
+      onToggleCollapse={toggleSidebar}
     />
   );
 

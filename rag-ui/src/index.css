@@ -1,57 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 /* Global font application */
 * {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
 body {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
   font-weight: 400;
 }
 
-/* Ensure all headings use Cinzel */
+/* All headings use PT Serif */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
+  font-weight: 700;
 }
 
-/* MUI components font override */
-.MuiTypography-root {
-  font-family: 'Cinzel', serif !important;
+/* Navigation and branding use PT Serif */
+.MuiAppBar-root .MuiTypography-root {
+  font-family: 'PT Serif', serif !important;
 }
 
+/* Buttons use PT Serif */
 .MuiButton-root {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
+}
+
+/* Form elements use PT Serif */
+.MuiTextField-root label {
+  font-family: 'PT Serif', serif !important;
 }
 
 .MuiTextField-root input {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
-.MuiTextField-root label {
-  font-family: 'Cinzel', serif !important;
-}
-
+/* Menu items use PT Serif */
 .MuiMenuItem-root {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
+/* Tabs use PT Serif */
 .MuiTab-root {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
-/* Ensure all text elements use Cinzel */
+/* All text elements use PT Serif */
 p, span, div, a, label, input, textarea, select, button {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
 /* Chat and content specific styles */
 .chat-message {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
+/* Markdown content uses PT Serif */
 .markdown-content {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
 }
 
 .markdown-content h1,
@@ -60,11 +66,24 @@ p, span, div, a, label, input, textarea, select, button {
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
-  font-family: 'Cinzel', serif !important;
+  font-family: 'PT Serif', serif !important;
   font-weight: 700;
 }
 
-.markdown-content p {
-  font-family: 'Cinzel', serif !important;
+.markdown-content p,
+.markdown-content li,
+.markdown-content blockquote {
+  font-family: 'PT Serif', serif !important;
   font-weight: 400;
+}
+
+/* Strong and emphasis text */
+.markdown-content strong {
+  font-family: 'PT Serif', serif !important;
+  font-weight: 700;
+}
+
+.markdown-content em {
+  font-family: 'PT Serif', serif !important;
+  font-style: italic;
 }

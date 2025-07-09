@@ -1,14 +1,12 @@
 import React from 'react';
 import { Container, Typography, Box, Grid, Paper, Link } from '@mui/material';
+import WindowContainer from '../components/WindowContainer';
 
 const About = () => {
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
-        Welcome to Window to Truth!
-      </Typography>
-      
-      <Grid container spacing={6}>
+    <Container maxWidth="xl" sx={{ py: 2 }}>
+      <WindowContainer>
+        <Grid container spacing={6}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 4, borderRadius: 2 }}>
             <Typography variant="body1" paragraph>
@@ -67,6 +65,7 @@ const About = () => {
     
         </Grid>
       </Grid>
+      </WindowContainer>
     </Container>
   );
 };

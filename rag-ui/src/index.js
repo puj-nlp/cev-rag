@@ -26,53 +26,53 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: [
-      'Cinzel',
+      'PT Serif',
       'serif',
       'Georgia',
       'Times New Roman'
     ].join(','),
     h1: {
-      fontFamily: 'Cinzel, serif',
+      fontFamily: 'PT Serif, serif',
       fontWeight: 700,
     },
     h2: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 600,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     h3: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 600,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     h4: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 600,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     h5: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 500,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     h6: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 500,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     body1: {
-      fontFamily: 'Cinzel, serif',
+      fontFamily: 'PT Serif, serif',
       fontWeight: 400,
     },
     body2: {
-      fontFamily: 'Cinzel, serif',
+      fontFamily: 'PT Serif, serif',
       fontWeight: 400,
     },
     button: {
-      fontFamily: 'Cinzel, serif',
-      fontWeight: 500,
+      fontFamily: 'PT Serif, serif',
+      fontWeight: 700,
     },
     caption: {
-      fontFamily: 'Cinzel, serif',
+      fontFamily: 'PT Serif, serif',
       fontWeight: 400,
     },
     overline: {
-      fontFamily: 'Cinzel, serif',
+      fontFamily: 'PT Serif, serif',
       fontWeight: 400,
     }
   },
@@ -81,10 +81,14 @@ const theme = createTheme({
       styleOverrides: {
         '@global': {
           '*': {
-            fontFamily: 'Cinzel, serif !important',
+            fontFamily: 'PT Serif, serif !important',
           },
           body: {
-            fontFamily: 'Cinzel, serif !important',
+            fontFamily: 'PT Serif, serif !important',
+          },
+          'h1, h2, h3, h4, h5, h6': {
+            fontFamily: 'PT Serif, serif !important',
+            fontWeight: 700,
           },
         },
       },
@@ -92,7 +96,7 @@ const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: {
-          fontFamily: 'Cinzel, serif',
+          fontFamily: 'PT Serif, serif',
         },
       },
     },
@@ -101,8 +105,8 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 8,
-          fontFamily: 'Cinzel, serif',
-          fontWeight: 500,
+          fontFamily: 'PT Serif, serif',
+          fontWeight: 700,
         },
       },
     },
@@ -117,10 +121,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiInputBase-input': {
-            fontFamily: 'Cinzel, serif',
+            fontFamily: 'PT Serif, serif',
           },
           '& .MuiFormLabel-root': {
-            fontFamily: 'Cinzel, serif',
+            fontFamily: 'PT Serif, serif',
           },
         },
       },
@@ -128,14 +132,14 @@ const theme = createTheme({
     MuiMenuItem: {
       styleOverrides: {
         root: {
-          fontFamily: 'Cinzel, serif',
+          fontFamily: 'PT Serif, serif',
         },
       },
     },
     MuiTab: {
       styleOverrides: {
         root: {
-          fontFamily: 'Cinzel, serif',
+          fontFamily: 'PT Serif, serif',
           textTransform: 'none',
         },
       },

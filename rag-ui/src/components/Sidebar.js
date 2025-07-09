@@ -1,21 +1,32 @@
 import React from 'react';
-import { Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
+import { Box, Typography, Button, IconButton, CircularProgress, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  Delete as DeleteIcon, 
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon 
+} from '@mui/icons-material';
 
-const SidebarRoot = styled(Box)(({ theme }) => ({
+const SidebarRoot = styled(Box)(({ theme, collapsed }) => ({
   background: 'rgba(248, 250, 252, 0.95)',
   borderRight: '1px solid #e2e8f0',
   backdropFilter: 'blur(10px)',
-  width: '300px',
+  width: collapsed ? '60px' : '300px',
   padding: theme.spacing(2.5),
   borderRadius: '8px 0 0 8px',
+  transition: 'width 0.3s ease',
+  overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
-    width: '100%',
+    width: collapsed ? '0px' : '100%',
+    padding: collapsed ? 0 : theme.spacing(2.5),
     borderRight: 'none',
-    borderBottom: '1px solid #e2e8f0',
-    borderRadius: '8px 8px 0 0',
-    marginBottom: theme.spacing(2)
+    borderBottom: collapsed ? 'none' : '1px solid #e2e8f0',
+    borderRadius: collapsed ? '0' : '8px 8px 0 0',
+    marginBottom: collapsed ? 0 : theme.spacing(2),
+    position: collapsed ? 'absolute' : 'relative',
+    left: collapsed ? '-100%' : '0',
+    zIndex: collapsed ? -1 : 1
   }
 }));
 
@@ -108,9 +119,11 @@ const Sidebar = ({
   loadingChats, 
   sessionId, 
   chatId, 
+  collapsed,
   onCreateNewChat, 
   onSelectChat, 
-  onDeleteChat 
+  onDeleteChat,
+  onToggleCollapse 
 }) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -123,85 +136,137 @@ const Sidebar = ({
   };
 
   return (
-    <SidebarRoot>
-      <SidebarTitle variant="h6">
-        Chats
-      </SidebarTitle>
+    <SidebarRoot collapsed={collapsed}>
+      {/* Collapse/Expand button */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: collapsed ? 'center' : 'space-between', 
+        alignItems: 'center',
+        mb: collapsed ? 0 : 2
+      }}>
+        {!collapsed && (
+          <SidebarTitle variant="h6">
+            Chats
+          </SidebarTitle>
+        )}        <IconButton
+          onClick={onToggleCollapse}
+          size="small"
+          sx={{
+            color: '#1e3a8a',
+            backgroundColor: 'rgba(30, 58, 138, 0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(30, 58, 138, 0.2)',
+            }
+          }}
+        >
+          {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </IconButton>
+      </Box>
       
-      {/* Session indicator (only visible in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <SessionInfo>
-          Session: {sessionId.slice(-8)}
-        </SessionInfo>
+      {!collapsed && (
+        <>
+          {/* Session indicator (only visible in development) */}
+          {process.env.NODE_ENV === 'development' && (
+            <SessionInfo>
+              Session: {sessionId.slice(-8)}
+            </SessionInfo>
+          )}
+          
+          <NewChatButton 
+            variant="contained" 
+            onClick={onCreateNewChat}
+            startIcon={<AddIcon />}
+          >
+            New Chat
+          </NewChatButton>
+          
+          <ChatListContainer>
+            {loadingChats ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <CircularProgress size={24} sx={{ color: '#1e3a8a' }} />
+              </Box>
+            ) : chats.length === 0 ? (
+              <NoChatsMessage>
+                No chats yet. Create a new one to get started.
+              </NoChatsMessage>
+            ) : (
+              <>
+                {chats.map(chat => (
+                  <ChatItem 
+                    key={chat.id}
+                    isActive={chatId === chat.id.toString()}
+                    onClick={() => onSelectChat(chat.id)}
+                  >
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                      <Typography 
+                        variant="body2" 
+                        noWrap 
+                        sx={{ 
+                          maxWidth: 180,
+                          fontWeight: chatId === chat.id.toString() ? 600 : 400,
+                          color: chatId === chat.id.toString() ? '#1e3a8a' : '#374151'
+                        }}
+                      >
+                        {chat.title}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: '#64748b',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {formatDate(chat.created_at)}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => onDeleteChat(chat.id, e)}
+                      sx={{ 
+                        opacity: 0.6,
+                        color: '#64748b',
+                        '&:hover': { 
+                          opacity: 1, 
+                          color: '#ef4444',
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                        } 
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </ChatItem>
+                ))}
+              </>
+            )}
+          </ChatListContainer>
+        </>
       )}
       
-      <NewChatButton 
-        variant="contained" 
-        onClick={onCreateNewChat}
-        startIcon={<AddIcon />}
-      >
-        New Chat
-      </NewChatButton>
-      
-      <ChatListContainer>
-        {loadingChats ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <CircularProgress size={24} sx={{ color: '#1e3a8a' }} />
-          </Box>
-        ) : chats.length === 0 ? (
-          <NoChatsMessage>
-            No chats yet. Create a new one to get started.
-          </NoChatsMessage>
-        ) : (
-          <>
-            {chats.map(chat => (
-              <ChatItem 
-                key={chat.id}
-                isActive={chatId === chat.id.toString()}
-                onClick={() => onSelectChat(chat.id)}
-              >
-                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography 
-                    variant="body2" 
-                    noWrap 
-                    sx={{ 
-                      maxWidth: 180,
-                      fontWeight: chatId === chat.id.toString() ? 600 : 400,
-                      color: chatId === chat.id.toString() ? '#1e3a8a' : '#374151'
-                    }}
-                  >
-                    {chat.title}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      color: '#64748b',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    {formatDate(chat.created_at)}
-                  </Typography>
-                </Box>
-                <IconButton
-                  size="small"
-                  onClick={(e) => onDeleteChat(chat.id, e)}
-                  sx={{ 
-                    opacity: 0.6,
-                    color: '#64748b',
-                    '&:hover': { 
-                      opacity: 1, 
-                      color: '#ef4444',
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                    } 
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </ChatItem>
-            ))}
-          </>
-        )}
-      </ChatListContainer>
+      {/* Collapsed state - show only a "+" button for new chat */}
+      {collapsed && (
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          gap: 1,
+          mt: 2
+        }}>
+          <IconButton
+            onClick={onCreateNewChat}
+            sx={{
+              backgroundColor: '#917D26',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#7A6A20',
+              },
+              width: 40,
+              height: 40
+            }}
+          >
+            <AddIcon />
+          </IconButton>
+        </Box>
+      )}
     </SidebarRoot>
   );
 };
