@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap');
+
+/* Global font application */
+* {
+  font-family: 'Cinzel', serif !important;
+}
+
+body {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 400;
+}
+
+/* Ensure all headings use Cinzel */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cinzel', serif !important;
+}
+
+/* MUI components font override */
+.MuiTypography-root {
+  font-family: 'Cinzel', serif !important;
+}
+
+.MuiButton-root {
+  font-family: 'Cinzel', serif !important;
+}
+
+.MuiTextField-root input {
+  font-family: 'Cinzel', serif !important;
+}
+
+.MuiTextField-root label {
+  font-family: 'Cinzel', serif !important;
+}
+
+.MuiMenuItem-root {
+  font-family: 'Cinzel', serif !important;
+}
+
+.MuiTab-root {
+  font-family: 'Cinzel', serif !important;
+}
+
+/* Ensure all text elements use Cinzel */
+p, span, div, a, label, input, textarea, select, button {
+  font-family: 'Cinzel', serif !important;
+}
+
+/* Chat and content specific styles */
+.chat-message {
+  font-family: 'Cinzel', serif !important;
+}
+
+.markdown-content {
+  font-family: 'Cinzel', serif !important;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 700;
+}
+
+.markdown-content p {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 400;
+}

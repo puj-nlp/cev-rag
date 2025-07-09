@@ -2,18 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Container, Box, Typography, TextField, Button, IconButton,
-  CircularProgress, Paper, Grid, Avatar, Accordion, AccordionSummary, AccordionDetails
+  CircularProgress, Paper, Avatar, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import { 
-  Add as AddIcon, 
-  Delete as DeleteIcon, 
-  Send as SendIcon,
   Person as PersonIcon,
   SmartToy as BotIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import { apiService } from '../services/api';
+import WindowContainer from '../components/WindowContainer';
+import Sidebar from '../components/Sidebar';
+import WelcomeScreen from '../components/WelcomeScreen';
 
 const UnifiedChatInterface = () => {
   const { chatId } = useParams();
@@ -211,122 +211,20 @@ const UnifiedChatInterface = () => {
     window.location.reload();
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   const renderSidebar = () => (
-    <Box sx={{ backgroundColor: '#f9fafb', p: 2, borderRadius: 2, height: '80vh' }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        Chats
-      </Typography>
-      
-      {/* Session indicator (only visible in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-          Session: {sessionId.slice(-8)}
-        </Typography>
-      )}
-      
-      <Button 
-        variant="outlined" 
-        fullWidth 
-        sx={{ 
-          justifyContent: 'flex-start', 
-          mb: 1.5,
-          borderRadius: 2,
-          py: 1.2
-        }}
-        onClick={handleCreateNewChat}
-        startIcon={<AddIcon />}
-      >
-        New Chat
-      </Button>
-      
-      <Box sx={{ mt: 2 }}>
-        {loadingChats ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <CircularProgress size={24} />
-          </Box>
-        ) : chats.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
-            No chats yet. Create a new one to get started.
-          </Typography>
-        ) : (
-          <Box sx={{ overflowY: 'auto', maxHeight: '60vh' }}>
-            {chats.map(chat => (
-              <Box 
-                key={chat.id}
-                onClick={() => handleSelectChat(chat.id)}
-                sx={{ 
-                  p: 1.5, 
-                  mb: 1, 
-                  borderRadius: 1.5,
-                  backgroundColor: chatId === chat.id.toString() ? 'rgba(25,118,210,0.1)' : 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  '&:hover': { 
-                    backgroundColor: chatId === chat.id.toString() ? 'rgba(25,118,210,0.1)' : 'rgba(0,0,0,0.04)'
-                  }
-                }}
-              >
-                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography variant="body2" noWrap sx={{ maxWidth: 180 }}>
-                    {chat.title}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {formatDate(chat.created_at)}
-                  </Typography>
-                </Box>
-                <IconButton
-                  size="small"
-                  onClick={(e) => handleDeleteChat(chat.id, e)}
-                  sx={{ 
-                    opacity: 0.6, 
-                    '&:hover': { opacity: 1, color: 'error.main' } 
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
-          </Box>
-        )}
-      </Box>
-    </Box>
+    <Sidebar
+      chats={chats}
+      loadingChats={loadingChats}
+      sessionId={sessionId}
+      chatId={chatId}
+      onCreateNewChat={handleCreateNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+    />
   );
 
   const renderWelcomeScreen = () => (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      justifyContent: 'center', 
-      alignItems: 'center',
-      height: '70vh'
-    }}>
-      <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-        Welcome to Window to Truth!
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, textAlign: 'center', mb: 4 }}>
-        Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.
-      </Typography>
-      <Button 
-        variant="contained" 
-        startIcon={<AddIcon />}
-        onClick={handleStartNewChatFromWelcome}
-        sx={{ borderRadius: 2, px: 4, py: 1 }}
-      >
-        Start New Chat
-      </Button>
-    </Box>
+    <WelcomeScreen onStartNewChat={handleStartNewChatFromWelcome} />
   );
 
   const renderChatInterface = () => {
@@ -353,8 +251,9 @@ const UnifiedChatInterface = () => {
         sx={{ 
           display: 'flex',
           flexDirection: 'column',
-          height: '80vh',
-          position: 'relative'
+          height: '70vh',
+          position: 'relative',
+          pl: { xs: 0, md: 3 }
         }}
       >
         
@@ -365,10 +264,25 @@ const UnifiedChatInterface = () => {
             flexGrow: 1, 
             overflowY: 'auto', 
             mb: 2,
-            p: 2,
-            bgcolor: '#ffffff',
-            borderRadius: 2,
-            boxShadow: 'none'
+            p: 3,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: 3,
+            boxShadow: '0 2px 10px rgba(30, 58, 138, 0.1)',
+            border: '1px solid rgba(30, 58, 138, 0.1)',
+            '&::-webkit-scrollbar': {
+              width: '6px'
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'rgba(0,0,0,0.05)',
+              borderRadius: '3px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'rgba(30, 58, 138, 0.3)',
+              borderRadius: '3px',
+              '&:hover': {
+                background: 'rgba(30, 58, 138, 0.5)'
+              }
+            }
           }}
         >
           {activeChat.messages.length === 0 ? (
@@ -381,7 +295,7 @@ const UnifiedChatInterface = () => {
             }}>
               <Avatar 
                 sx={{ 
-                  bgcolor: '#1976d2', 
+                  bgcolor: '#1e3a8a', 
                   mb: 2,
                   width: 56,
                   height: 56
@@ -410,7 +324,7 @@ const UnifiedChatInterface = () => {
                 {msg.is_bot && (
                   <Avatar 
                     sx={{ 
-                      bgcolor: '#1976d2', 
+                      bgcolor: '#1e3a8a', 
                       mr: 2, 
                       mt: 0.5,
                       width: 32,
@@ -424,12 +338,13 @@ const UnifiedChatInterface = () => {
                 {/* Message */}
                 <Box sx={{ 
                   maxWidth: '80%',
-                  p: 2, 
-                  borderRadius: 2,
-                  bgcolor: msg.is_bot ? '#f5f5f5' : '#1976d2',
+                  p: 2.5, 
+                  borderRadius: 3,
+                  bgcolor: msg.is_bot ? 'rgba(248, 250, 252, 0.9)' : '#1e3a8a',
                   color: msg.is_bot ? 'text.primary' : 'white',
-                  boxShadow: msg.is_bot ? 1 : 'none',
-                  order: msg.is_bot ? 2 : 1
+                  boxShadow: msg.is_bot ? '0 2px 8px rgba(30, 58, 138, 0.1)' : '0 2px 8px rgba(30, 58, 138, 0.3)',
+                  order: msg.is_bot ? 2 : 1,
+                  border: msg.is_bot ? '1px solid rgba(30, 58, 138, 0.1)' : 'none'
                 }}>
                   {msg.is_bot ? (
                     <Box>
@@ -498,7 +413,7 @@ const UnifiedChatInterface = () => {
                                 sx={{ 
                                   mb: 2,
                                   fontWeight: 'bold',
-                                  color: '#1976d2',
+                                  color: '#1e3a8a',
                                   display: 'flex',
                                   alignItems: 'center'
                                 }}
@@ -550,12 +465,11 @@ const UnifiedChatInterface = () => {
                           >
                             <Typography 
                               variant="h6" 
-                              sx={{ 
-                                fontWeight: 'bold',
-                                color: '#1976d2',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1
+                              sx={{                              fontWeight: 'bold',
+                              color: '#1e3a8a',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1
                               }}
                             >
                               📚 Referencias ({msg.references.length})
@@ -570,7 +484,7 @@ const UnifiedChatInterface = () => {
                                     mb: 2,
                                     p: 1.5,
                                     bgcolor: '#ffffff',
-                                    borderLeft: '4px solid #1976d2',
+                                    borderLeft: '4px solid #1e3a8a',
                                     borderRadius: '0 4px 4px 0',
                                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                                   }}
@@ -579,7 +493,7 @@ const UnifiedChatInterface = () => {
                                     variant="body2" 
                                     sx={{ 
                                       fontWeight: 'bold',
-                                      color: '#1976d2',
+                                      color: '#1e3a8a',
                                       mb: 0.5
                                     }}
                                   >
@@ -600,7 +514,7 @@ const UnifiedChatInterface = () => {
                                         variant="caption" 
                                         sx={{ 
                                           bgcolor: '#e3f2fd',
-                                          color: '#1976d2',
+                                          color: '#1e3a8a',
                                           px: 1,
                                           py: 0.5,
                                           borderRadius: 1,
@@ -649,7 +563,7 @@ const UnifiedChatInterface = () => {
                                       rel="noopener noreferrer"
                                       variant="caption"
                                       sx={{ 
-                                        color: '#1976d2',
+                                        color: '#1e3a8a',
                                         textDecoration: 'none',
                                         '&:hover': {
                                           textDecoration: 'underline'
@@ -697,8 +611,11 @@ const UnifiedChatInterface = () => {
           component="form" 
           onSubmit={handleSendMessage}
           sx={{ 
-            p: 2,
-            mt: 'auto'
+            p: 2.5,
+            mt: 'auto',
+            backgroundColor: 'rgba(248, 250, 252, 0.9)',
+            borderRadius: 3,
+            border: '1px solid rgba(30, 58, 138, 0.1)'
           }}
         >
           <TextField
@@ -715,19 +632,27 @@ const UnifiedChatInterface = () => {
                   variant="contained"
                   disabled={sending || !message.trim()}
                   type="submit"
-                  sx={{ ml: 1, borderRadius: 1 }}
+                  sx={{ 
+                    ml: 1, 
+                    borderRadius: 2,
+                    backgroundColor: '#917D26',
+                    '&:hover': {
+                      backgroundColor: '#7A6A20'
+                    }
+                  }}
                 >
                   {sending ? <CircularProgress size={24} /> : 'Send'}
                 </Button>
               ),
               sx: { 
                 pr: 1,
-                borderRadius: 2
+                borderRadius: 3,
+                backgroundColor: 'white'
               }
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2
+                borderRadius: 3
               }
             }}
           />
@@ -737,17 +662,12 @@ const UnifiedChatInterface = () => {
   };
 
   return (
-    <Container>
-      <Grid container spacing={4} sx={{ pt: 4 }}>
-        {/* Sidebar */}
-        <Grid item xs={12} md={3}>
-          {renderSidebar()}
-        </Grid>
-        
-        {/* Main Content */}
-        <Grid item xs={12} md={9}>
+    <Container maxWidth="xl" sx={{ py: 2 }}>
+      <WindowContainer>
+        {renderSidebar()}
+        <Box sx={{ flex: 1 }}>
           {error && (
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: 2 }}>
               <Typography color="error">
                 {error}
               </Typography>
@@ -755,8 +675,8 @@ const UnifiedChatInterface = () => {
           )}
           
           {chatId ? renderChatInterface() : renderWelcomeScreen()}
-        </Grid>
-      </Grid>
+        </Box>
+      </WindowContainer>
     </Container>
   );
 };

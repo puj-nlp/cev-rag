@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import { QuestionMark } from '@mui/icons-material';
+import { GitHub } from '@mui/icons-material';
 
 const Header = () => {
   const location = useLocation();
@@ -71,7 +71,7 @@ const Header = () => {
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
               }}
             >
-              <QuestionMark sx={{ fontSize: '1.2rem' }} />
+              <GitHub sx={{ fontSize: '1.2rem' }} />
             </IconButton>
           </Box>
         </Toolbar>
