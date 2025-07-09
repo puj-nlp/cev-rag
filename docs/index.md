@@ -54,7 +54,7 @@ Presentación del sistema ante instituciones y sociedad civil en Colombia.
 
 ## Prueba la herramienta
 
-🔗 [Haz clic aquí para probar *Ventana a la Verdad*](http://ventanaverdad.lucyapps.net:1337/)
+🔗 [Haz clic aquí para probar *Ventana a la Verdad*](https://window-truth.lumon.com.co/)
 
 🔗 [Repositorio del código fuente en GitHub](https://github.com/puj-nlp/cev-rag)
 
