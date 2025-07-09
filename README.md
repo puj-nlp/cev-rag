@@ -1,6 +1,6 @@
 # Window to Truth: Chatbot for the Colombian Truth Commission
 
-This project is a query application about the Colombian conflict using the RAG (Retrieval-Augmented Generation) technique. The application allows users to ask questions about the armed conflict in Colombia and receive answers generated with the help of relevant documents retrieved from the Truth Commission's database.
+This project is a query application about the Colombian conflict using the RAG (Retrieval-Augmented Generation) technique. The application allows users to ask questions about the armed conflict in Colombia and receive answers generated with the help of relevant documents retrieved from the Truth Commission's Clarification Archive.
 
 ## Project Structure
 
