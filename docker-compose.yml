@@ -8,8 +8,9 @@ services:
     depends_on:
       milvus:
         condition: service_healthy
+    env_file:
+      - ./rag-api/.env
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
     healthcheck:
@@ -27,6 +28,9 @@ services:
       - rag-api
     volumes:
       - ./rag-ui:/app
+    environment:
+      - REACT_APP_API_URL=/api
+      # No API key needed for frontend - uses secure backend proxy
 
   milvus:
     image: "milvusdb/milvus:v2.3.9"

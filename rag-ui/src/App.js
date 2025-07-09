@@ -3,9 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 
 import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import ChatList from './pages/ChatList';
-import ChatView from './pages/ChatView';
+import Footer from './components/Footer';
+import UnifiedChatInterface from './pages/UnifiedChatInterface';
 import About from './pages/About';
 
 function App() {
@@ -14,11 +13,12 @@ function App() {
       <Header />
       <Box component="main" sx={{ flexGrow: 1 }}>
         <Routes>
-          <Route path="/" element={<ChatList />} />
-          <Route path="/chats/:chatId" element={<ChatView />} />
+          <Route path="/" element={<UnifiedChatInterface />} />
+          <Route path="/chats/:chatId" element={<UnifiedChatInterface />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </Box>
+      <Footer />
     </Box>
   );
 }

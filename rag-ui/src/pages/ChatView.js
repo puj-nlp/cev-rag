@@ -5,10 +5,8 @@ import {
   CircularProgress, Avatar, Paper, Grid
 } from '@mui/material';
 import { Send as SendIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+import { apiService } from '../services/api';
 
 const ChatView = () => {
   const { chatId } = useParams();
@@ -27,7 +25,7 @@ const ChatView = () => {
     fetchChats();
   }, [chatId]);
 
-  // Hacer scroll al final del chat cuando hay nuevos mensajes
+  // Scroll to bottom of chat when there are new messages
   useEffect(() => {
     scrollToBottom();
   }, [chat?.messages]);
@@ -270,7 +268,7 @@ const ChatView = () => {
                       color="text.secondary" 
                       sx={{ mb: 1 }}
                     >
-                      {msg.is_bot ? 'Ventana a la Verdad' : 'Usuario'}
+                      {msg.is_bot ? 'Window to Truth' : 'User'}
                     </Typography>
                     
                     <Box sx={{ 
