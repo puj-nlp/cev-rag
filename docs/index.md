@@ -36,8 +36,8 @@ Presentación del sistema ante instituciones y sociedad civil en Colombia.
 
 ### Equipo de Investigación Principal
 - **Dr. Luis Gabriel Moreno Sandoval** – PUJ 📨 morenoluis@javeriana.edu.co
-- **PhD(c) Anna Sokol** – Notre Dame 📨 asokol@nd.edu  
 - **PhD Matthew Sisk** – Notre Dame 📨 msisk1@nd.edu  
+- **PhD(c) Anna Sokol** – Notre Dame 📨 asokol@nd.edu  
 - **María Prada Ramírez, MPP** – Kroc Institute 📨 mpradara@nd.edu  
 
 ### Equipo de Ética y Validación Técnica
