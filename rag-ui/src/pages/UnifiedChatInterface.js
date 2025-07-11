@@ -313,7 +313,7 @@ const UnifiedChatInterface = () => {
                 <BotIcon sx={{ fontSize: 32 }} />
               </Avatar>
               <Typography variant="body1" color="text.secondary" textAlign="center">
-                Hello! I'm Window to Truth.<br />
+                Hello! I'm Ventana a la Verdad.<br />
                 Ask me about the testimonies from Colombia's Truth Commission.
               </Typography>
             </Box>
