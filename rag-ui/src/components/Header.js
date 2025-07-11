@@ -24,7 +24,7 @@ const Header = () => {
   const location = useLocation();
 
   return (
-    <AppBar position="static" elevation={0} sx={{ backgroundColor: '#e6e6e6' }}>
+    <AppBar position="fixed" elevation={0} sx={{ backgroundColor: '#e6e6e6', zIndex: 1300 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* Logo and title */}

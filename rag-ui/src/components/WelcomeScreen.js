@@ -87,7 +87,7 @@ const WelcomeScreen = ({ onStartNewChat }) => {
     <WelcomeRoot>
       <LogoVentana />
       <WelcomeTitle variant="h1">
-        Welcome to Window to Truth!
+        Welcome to Ventana a la Verdad!
       </WelcomeTitle>
       <WelcomeDescription variant="body1">
         Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.

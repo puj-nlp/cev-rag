@@ -6,13 +6,14 @@ const Footer = () => {
     <Box 
       component="footer" 
       sx={{ 
-        backgroundColor: '#101986', // Color azul oscuro exacto de la imagen
+        backgroundColor: '#101986',
         color: '#FFFFFF',
         py: 2,
-        mt: 'auto',
         width: '100%',
-        position: 'relative',
-        bottom: 0
+        position: 'fixed',
+        left: 0,
+        bottom: 0,
+        zIndex: 1200
       }}
     >
       <Container maxWidth={false} sx={{ px: 2 }}>
@@ -114,7 +115,7 @@ const Footer = () => {
                 </Link>
                 
                 <Link 
-                  href="https://ethics.nd.edu/labs-and-centers/notre-dame-ibm-technology-ethics-lab/"
+                  href="https://kroc.nd.edu/"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{ 
@@ -124,7 +125,7 @@ const Footer = () => {
                   }}
                 >
                   <img 
-                    src="/logo_ethics.svg"
+                    src="/logo_kroc.svg"
                     alt="Notre Dame IBM Technology Ethics Lab"
                     style={{ 
                       height: '40px',

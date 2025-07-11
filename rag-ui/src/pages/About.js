@@ -6,51 +6,47 @@ const About = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       <WindowContainer>
-        <Grid container spacing={6}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 4, borderRadius: 2 }}>
-            <Typography variant="h4" paragraph>
-              Window to Truth is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.
-            </Typography>
-            
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
-              How It Works
-            </Typography>
-            
-            <Typography variant="body1" paragraph>
-              Ask about the Colombian conflict, peace agreements, or key events. The chatbot provides accurate context using official data from the Colombian Truth Commission.
-            </Typography>
-            
-            <Typography variant="body1" paragraph>
-              Some responses can be near 20 seconds. Please be patient while the chatbot processes your request.
-            </Typography>
-            
-            <Typography variant="body1" paragraph>
-              Our answers include references to ensure the information you receive is reliable and precise. We summarize complex issues to make them easier to understand while providing the necessary depth. You are welcome to ask follow-up questions, and the conversation can continue exploring related topics.
-            </Typography>
-            
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              About the Truth Commission
-            </Typography>
-            
-            <Typography variant="body1" paragraph>
-              The Commission for the Clarification of Truth, Coexistence, and Non-Repetition was established as part of the 2016 Peace Agreement between the Colombian government and the FARC.
-            </Typography>
-            
-            <Typography variant="body1">
-              Their work between 2018 and 2022 has been crucial for understanding the armed conflict and promoting reconciliation throughout Colombia.
-            </Typography>
-
-          </Paper>
+        <Grid container spacing={6} justifyContent="center" alignItems="stretch">
+        <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Paper sx={{ p: 2, borderRadius: 2, mb: 4, textAlign: 'center', flex: 1, minHeight: 210 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4, textAlign: 'center' }}>
+                Welcome
+              </Typography>
+              <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+                Ventana a la Verdad is a chatbot that provides reliable and insightful information about the Colombian armed conflict and peace processes according to the work done by the Colombian Truth Commission (2019–2022).
+                The chatbot is an innovation in progress created in collaboration by the University of Notre Dame and the University Javeriana within the framework of the Legacy project.
+                This chatbot is the result of a joint initiative between the University of Notre Dame, specifically the Lucy Family Institute for Data & Society and the Kroc Institute, and the Pontificia Universidad Javeriana. This is partly funded by the IBM Tech Ethics Lab.
+              </Typography>
+            </Paper>
+            <Paper sx={{ p: 2, borderRadius: 2, mb: 0, textAlign: 'center', flex: 1, minHeight: 210 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4, textAlign: 'center' }}>
+                How It Works
+              </Typography>
+              <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+                Ask about the Colombian armed conflict, peace agreements, or key actors and historical events. The chatbot provides accurate context using official public data released by the Colombian Truth Commission.
+              </Typography>
+              <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+                Some responses can take up to 20 seconds, so please be patient while the chatbot processes your request.
+              </Typography>
+              <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+                The answers include references to ensure that you can compare the information with the original sources directly. We summarize complex issues to make them easier to understand, while the sources can offer you more depth.
+              </Typography>
+              <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+                You are welcome to ask for shorter or longer answers, request clarifications, or ask for bullet points or numerical lists.
+              </Typography>
+            </Paper>
+          </Box>
         </Grid>
         
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Paper sx={{ p: 2, borderRadius: 2, mb: 4, textAlign: 'center', flex: 1, minHeight: 210 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4, textAlign: 'center' }}>
               Resources
             </Typography>
             
-            <Typography variant="body1" paragraph>
+            <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
               For further reading, explore the full: {' '}
               <Link 
                 href="https://comisiondelaverdad.co/en" 
@@ -70,17 +66,61 @@ const About = () => {
                 The Legacy Project
               </Link>.
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4, textAlign: 'center' }}>
               Contact
             </Typography>
             
-            <Typography variant="body1" paragraph>
-              Luis Gabriel Moreno Sandoval
+            <Typography variant="body1" paragraph sx={{ textAlign: 'center' }}>
+              PhD Luis Gabriel Moreno Sandoval
               morenoluis@javeriana.edu.co
             </Typography>
           </Paper>
+            <Paper sx={{ p: 2, borderRadius: 2, mb: 0, textAlign: 'left', flex: 1, minHeight: 210 }}>
+                       
+            <Typography variant="body1" paragraph sx={{ textAlign: 'left', mb: 2 }}>
+              <ul style={{ paddingLeft: '1.2em', margin: 0 }}>
+                <li><strong>Project:</strong> Cultural Context-Aware Question-Answering System for the Colombian Truth Commission</li>
+                <li><strong>Funding:</strong> Notre Dame–IBM Technology Ethics Lab</li>
+                <li><strong>Call:</strong> 2024 CFP: The Ethics of Large-Scale Models</li>
+                <li><strong>Amount awarded:</strong> USD $60,000</li>
+                <li><strong>Period:</strong> Until July 2025</li>
+              </ul>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Box sx={{ display: 'inline-block', width: '100%', maxWidth: '320px', mx: 'auto' }}>
+                  <Link 
+                    href="https://ethics.nd.edu/labs-and-centers/notre-dame-ibm-technology-ethics-lab/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#14284B',
+                      borderRadius: 2,
+                      p: 2,
+                      minHeight: '70px',
+                      width: '100%',
+                      '&:hover': { opacity: 0.8 }
+                    }}
+                  >
+                    <img 
+                      src="/logo_ethics.svg"
+                      alt="Notre Dame IBM Technology Ethics Lab"
+                      style={{ 
+                        height: '48px',
+                        maxWidth: '100%',
+                        width: 'auto',
+                        margin: '0 auto',
+                        display: 'block'
+                      }}
+                    />
+                  </Link>
+                </Box>
+              </Box>
+            </Typography>
+          </Paper>
           
-    
+            </Box>
         </Grid>
       </Grid>
       </WindowContainer>
