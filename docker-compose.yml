@@ -42,6 +42,7 @@ services:
       - ETCD_DATA_DIR=/var/lib/milvus/etcd
       - ETCD_CONFIG_PATH=/milvus/configs/embedEtcd.yaml
       - COMMON_STORAGETYPE=local
+      - MAX_CONCURRENT_QUERIES=16
     ports:
       - "19530:19530"
       - "9091:9091"
