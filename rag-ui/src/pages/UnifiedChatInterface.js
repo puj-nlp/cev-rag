@@ -77,7 +77,7 @@ const UnifiedChatInterface = () => {
       setError(null);
     } catch (err) {
       console.error('Error loading chats:', err);
-      setError('Could not load chats. Please check your API configuration.');
+      setError('Could not load chats. There is currently high user traffic, please try again later.');
     } finally {
       setLoadingChats(false);
     }
@@ -91,7 +91,7 @@ const UnifiedChatInterface = () => {
       setError(null);
     } catch (err) {
       console.error('Error loading chat:', err);
-      setError('Could not load chat. Please check your API configuration.');
+      setError('Could not load chat. There is currently high user traffic, please try again later.');
       setActiveChat(null);
     } finally {
       setLoadingChat(false);
@@ -111,7 +111,7 @@ const UnifiedChatInterface = () => {
       navigate(`/chats/${newChat.id}`);
     } catch (err) {
       console.error('Error creating new chat:', err);
-      setError('Could not create chat. Please check your API configuration.');
+      setError('Could not create chat. There is currently high user traffic, please try again later.');
     }
   };
 
@@ -137,7 +137,7 @@ const UnifiedChatInterface = () => {
       }
     } catch (err) {
       console.error('Error deleting chat:', err);
-      setError('Could not delete chat. Please check your API configuration.');
+      setError('Could not delete chat. There is currently high user traffic, please try again later.');
     }
   };
 
@@ -194,7 +194,7 @@ const UnifiedChatInterface = () => {
       
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Could not send message. Please check your API configuration.');
+      setError('Could not send message. There is currently high user traffic, please try again later.');
     } finally {
       setSending(false);
     }
