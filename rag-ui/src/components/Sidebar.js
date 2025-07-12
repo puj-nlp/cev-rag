@@ -219,21 +219,21 @@ const Sidebar = ({
                         {formatDate(chat.created_at)}
                       </Typography>
                     </Box>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => onDeleteChat(chat.id, e)}
-                      sx={{ 
-                        opacity: 0.6,
-                        color: '#64748b',
-                        '&:hover': { 
-                          opacity: 1, 
-                          color: '#ef4444',
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                        } 
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Tooltip title="Feature coming in a future version" placement="top">
+                      <span>
+                        <IconButton
+                          size="small"
+                          disabled
+                          sx={{ 
+                            opacity: 0.3,
+                            color: '#64748b',
+                            cursor: 'not-allowed',
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
                   </ChatItem>
                 ))}
               </>
