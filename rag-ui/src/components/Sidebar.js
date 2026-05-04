@@ -8,7 +8,9 @@ import {
   ChevronRight as ChevronRightIcon 
 } from '@mui/icons-material';
 
-const SidebarRoot = styled(Box)(({ theme, collapsed }) => ({
+const SidebarRoot = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'collapsed',
+})(({ theme, collapsed }) => ({
   background: 'rgba(248, 250, 252, 0.95)',
   borderRight: '1px solid #e2e8f0',
   backdropFilter: 'blur(10px)',
@@ -77,7 +79,9 @@ const NoChatsMessage = styled(Box)(({ theme }) => ({
   border: '1px dashed #cbd5e1'
 }));
 
-const ChatItem = styled(Box)(({ theme, isActive }) => ({
+const ChatItem = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isActive',
+})(({ theme, isActive }) => ({
   padding: theme.spacing(1.5),
   marginBottom: theme.spacing(1),
   borderRadius: '8px',

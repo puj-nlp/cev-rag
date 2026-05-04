@@ -9,9 +9,9 @@ import About from './pages/About';
 
 function App() {
   return (
-    <Box sx={{ minHeight: '100vh', position: 'relative' }}>
+    <Box sx={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <Header />
-      <Box component="main" sx={{ pt: '64px', pb: '56px' }}>
+      <Box component="main" sx={{ flex: 1, overflow: 'auto', pt: '64px', pb: { xs: 0, md: '56px' } }}>
         <Routes>
           <Route path="/" element={<UnifiedChatInterface />} />
           <Route path="/chats/:chatId" element={<UnifiedChatInterface />} />

@@ -40,11 +40,11 @@ const FormattedMessage = ({ content, isUser = false }) => {
       className="chat-message"
       sx={{
         backgroundColor: isUser ? '#f5f5f5' : '#ffffff',
-        padding: '20px',
+        padding: { xs: '12px 14px', sm: '20px' },
         borderRadius: '12px',
         marginBottom: '16px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        maxWidth: '800px',
+        maxWidth: '100%',
         margin: '0 auto 16px auto',
         border: isUser ? '1px solid #e0e0e0' : 'none',
       }}

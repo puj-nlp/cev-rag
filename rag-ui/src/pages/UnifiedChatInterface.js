@@ -239,7 +239,7 @@ const UnifiedChatInterface = () => {
   const renderChatInterface = () => {
     if (loadingChat) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
           <CircularProgress />
         </Box>
       );
@@ -247,7 +247,7 @@ const UnifiedChatInterface = () => {
 
     if (!activeChat) {
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
           <Typography variant="body1" color="text.secondary">
             Chat not found
           </Typography>
@@ -260,7 +260,8 @@ const UnifiedChatInterface = () => {
         sx={{ 
           display: 'flex',
           flexDirection: 'column',
-          height: '70vh',
+          flex: 1,
+          minHeight: 0,
           position: 'relative',
           pl: { xs: 0, md: 3 }
         }}
@@ -270,10 +271,11 @@ const UnifiedChatInterface = () => {
         {/* Messages Area */}
         <Paper
           sx={{ 
-            flexGrow: 1, 
+            flexGrow: 1,
+            minHeight: 0,
             overflowY: 'auto', 
             mb: 2,
-            p: 3,
+            p: { xs: 1.5, sm: 3 },
             bgcolor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 3,
             boxShadow: '0 2px 10px rgba(30, 58, 138, 0.1)',
@@ -346,8 +348,8 @@ const UnifiedChatInterface = () => {
                 
                 {/* Message */}
                 <Box sx={{ 
-                  maxWidth: '80%',
-                  p: 2.5, 
+                  maxWidth: { xs: '90%', sm: '80%' },
+                  p: { xs: 1.5, sm: 2.5 }, 
                   borderRadius: 3,
                   bgcolor: msg.is_bot ? 'rgba(248, 250, 252, 0.9)' : '#1e3a8a',
                   color: msg.is_bot ? 'text.primary' : 'white',
@@ -621,7 +623,7 @@ const UnifiedChatInterface = () => {
           onSubmit={handleSendMessage}
           sx={{ 
             p: 2.5,
-            mt: 'auto',
+            flexShrink: 0,
             backgroundColor: 'rgba(248, 250, 252, 0.9)',
             borderRadius: 3,
             border: '1px solid rgba(30, 58, 138, 0.1)'
@@ -671,10 +673,10 @@ const UnifiedChatInterface = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
+    <Container maxWidth="xl" sx={{ py: 2, height: '100%' }}>
       <WindowContainer>
         {renderSidebar()}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {error && (
             <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: 2 }}>
               <Typography color="error">

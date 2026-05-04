@@ -10,10 +10,10 @@ const Footer = () => {
         color: '#FFFFFF',
         py: 2,
         width: '100%',
-        position: 'fixed',
-        left: 0,
-        bottom: 0,
-        zIndex: 1200
+        position: { xs: 'static', md: 'fixed' },
+        left: { xs: 'unset', md: 0 },
+        bottom: { xs: 'unset', md: 0 },
+        zIndex: { xs: 'unset', md: 1200 }
       }}
     >
       <Container maxWidth={false} sx={{ px: 2 }}>
@@ -34,7 +34,7 @@ const Footer = () => {
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  fontSize: '14px',
+                  fontSize: { xs: '11px', sm: '14px' },
                   fontFamily: '"Inter", sans-serif'
                 }}
               >
@@ -64,13 +64,11 @@ const Footer = () => {
                     '&:hover': { opacity: 0.8 }
                   }}
                 >
-                  <img 
+                  <Box
+                    component="img"
                     src="/logo_javeriana.png"
                     alt="Universidad Javeriana"
-                    style={{ 
-                      height: '40px',
-                      filter: 'brightness(0) invert(1)' // Hace el logo blanco
-                    }}
+                    sx={{ height: { xs: '28px', sm: '40px' }, filter: 'brightness(0) invert(1)' }}
                   />
                 </Link>
                 
@@ -84,13 +82,11 @@ const Footer = () => {
                     '&:hover': { opacity: 0.8 }
                   }}
                 >
-                  <img 
+                  <Box
+                    component="img"
                     src="/logo_legacy_project.svg"
                     alt="Legacy Project Notre Dame"
-                    style={{ 
-                      height: '40px',
-                      filter: 'brightness(0) invert(1)' // Hace el logo blanco
-                    }}
+                    sx={{ height: { xs: '28px', sm: '40px' }, filter: 'brightness(0) invert(1)' }}
                   />
                 </Link>
                 
@@ -104,13 +100,11 @@ const Footer = () => {
                     '&:hover': { opacity: 0.8 }
                   }}
                 >
-                  <img 
+                  <Box
+                    component="img"
                     src="/logo_lucy.svg"
                     alt="Lucy Institute Notre Dame"
-                    style={{ 
-                      height: '40px',
-                      filter: 'brightness(0) invert(1)' // Hace el logo blanco
-                    }}
+                    sx={{ height: { xs: '28px', sm: '40px' }, filter: 'brightness(0) invert(1)' }}
                   />
                 </Link>
                 
@@ -124,13 +118,11 @@ const Footer = () => {
                     '&:hover': { opacity: 0.8 }
                   }}
                 >
-                  <img 
+                  <Box
+                    component="img"
                     src="/logo_kroc.svg"
                     alt="Notre Dame IBM Technology Ethics Lab"
-                    style={{ 
-                      height: '40px',
-                      filter: 'brightness(0) invert(1)' // Hace el logo blanco
-                    }}
+                    sx={{ height: { xs: '28px', sm: '40px' }, filter: 'brightness(0) invert(1)' }}
                   />
                 </Link>
               </Box>

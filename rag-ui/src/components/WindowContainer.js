@@ -14,9 +14,13 @@ const WindowRoot = styled(Box)(({ theme }) => ({
   backdropFilter: 'blur(10px)',
   position: 'relative',
   overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
   margin: theme.spacing(2),
+  height: `calc(100% - ${theme.spacing(4)})`,
   [theme.breakpoints.down('md')]: {
     margin: theme.spacing(1),
+    height: `calc(100% - ${theme.spacing(2)})`,
   }
 }));
 
@@ -58,14 +62,15 @@ const WindowControl = styled(Box)(({ theme, color }) => ({
 
 const WindowContent = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2.5),
-  minHeight: '70vh',
+  flex: 1,
+  minHeight: 0,
   background: 'rgba(255, 255, 255, 0.95)',
   position: 'relative',
   display: 'flex',
-  overflow: 'hidden', // Prevent layout issues with collapsible sidebar
+  overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
   }
 }));
 
