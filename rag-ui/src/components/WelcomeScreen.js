@@ -29,7 +29,7 @@ const WelcomeRoot = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   alignItems: 'center',
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(5, 2.5)
+    padding: theme.spacing(2.5, 2.5)
   }
 }));
 
@@ -54,7 +54,11 @@ const WelcomeDescription = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(5),
   maxWidth: '500px',
   marginLeft: 'auto',
-  marginRight: 'auto'
+  marginRight: 'auto',
+  [theme.breakpoints.down('md')]: {
+    marginBottom: theme.spacing(3),
+    fontSize: '1rem'
+  }
 }));
 
 const StartChatButton = styled(Button)(({ theme }) => ({
@@ -86,7 +90,7 @@ const WelcomeScreen = ({ onStartNewChat }) => {
   return (
     <WelcomeRoot>
       <LogoVentana />
-      <WelcomeTitle variant="h1">
+      <WelcomeTitle variant="h1" sx={{ display: { xs: 'none', md: 'block' } }}>
         Welcome to Ventana a la Verdad!
       </WelcomeTitle>
       <WelcomeDescription variant="body1">
