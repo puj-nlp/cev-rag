@@ -6,16 +6,26 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import UnifiedChatInterface from './pages/UnifiedChatInterface';
 import About from './pages/About';
+import Maintenance from './pages/Maintenance';
+import MaintenanceBanner from './components/MaintenanceBanner';
+import { maintenanceMode } from './config';
 
 function App() {
   return (
     <Box sx={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <Header />
       <Box component="main" sx={{ flex: 1, overflow: 'auto', pt: '64px', pb: { xs: 0, md: '56px' } }}>
+        <MaintenanceBanner />
         <Routes>
-          <Route path="/" element={<UnifiedChatInterface />} />
-          <Route path="/chats/:chatId" element={<UnifiedChatInterface />} />
-          <Route path="/about" element={<About />} />
+          {maintenanceMode === 'full' ? (
+            <Route path="*" element={<Maintenance />} />
+          ) : (
+            <>
+              <Route path="/" element={<UnifiedChatInterface />} />
+              <Route path="/chats/:chatId" element={<UnifiedChatInterface />} />
+              <Route path="/about" element={<About />} />
+            </>
+          )}
         </Routes>
       </Box>
       <Footer />

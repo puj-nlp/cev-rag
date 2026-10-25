@@ -23,6 +23,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copiar los archivos de build del frontend
 COPY --from=build /app/build /usr/share/nginx/html
 
+# Generar config.js en runtime (MAINTENANCE_MODE, MAINTENANCE_MESSAGE)
+COPY docker-entrypoint.d/40-app-config.sh /docker-entrypoint.d/40-app-config.sh
+RUN chmod +x /docker-entrypoint.d/40-app-config.sh
+
 # Exponer el puerto 80
 EXPOSE 80
 

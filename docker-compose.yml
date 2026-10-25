@@ -31,6 +31,9 @@ services:
     environment:
       - REACT_APP_API_URL=/api
       # No API key needed for frontend - uses secure backend proxy
+      # Maintenance sign (runtime, no rebuild): off | banner | full
+      - MAINTENANCE_MODE=${MAINTENANCE_MODE:-off}
+      - MAINTENANCE_MESSAGE=${MAINTENANCE_MESSAGE:-}
 
   milvus:
     image: "milvusdb/milvus:v2.3.9"

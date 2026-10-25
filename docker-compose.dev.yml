@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   rag-api:
     build: ./rag-api
@@ -37,6 +35,7 @@ services:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_API_URL=http://localhost:8000/api
+      # Maintenance sign: set REACT_APP_MAINTENANCE_MODE (off | banner | full) in rag-ui/.env
     stdin_open: true
     tty: true
 
