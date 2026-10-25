@@ -31,8 +31,8 @@ services:
     environment:
       - REACT_APP_API_URL=/api
       # No API key needed for frontend - uses secure backend proxy
-      # Maintenance sign (runtime, no rebuild): off | banner | full
-      - MAINTENANCE_MODE=${MAINTENANCE_MODE:-off}
+      # Maintenance sign (runtime, no rebuild): off | banner | full. Empty = use rag-ui/.env (build-time)
+      - MAINTENANCE_MODE=${MAINTENANCE_MODE:-}
       - MAINTENANCE_MESSAGE=${MAINTENANCE_MESSAGE:-}
 
   milvus:

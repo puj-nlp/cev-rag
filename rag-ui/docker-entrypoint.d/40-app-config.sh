@@ -9,9 +9,9 @@ js_escape() {
   printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g" -e 's/</\\u003c/g' | tr '\n' ' '
 }
 
-MODE=$(js_escape "${MAINTENANCE_MODE:-off}")
+MODE=$(js_escape "${MAINTENANCE_MODE:-}")
 MESSAGE=$(js_escape "${MAINTENANCE_MESSAGE:-}")
 
 printf "window.__APP_CONFIG__ = { MAINTENANCE_MODE: '%s', MAINTENANCE_MESSAGE: '%s' };\n" "$MODE" "$MESSAGE" > "$CONFIG_FILE"
 
-echo "40-app-config.sh: MAINTENANCE_MODE=${MAINTENANCE_MODE:-off}"
+echo "40-app-config.sh: MAINTENANCE_MODE=${MAINTENANCE_MODE:-<unset, using build-time value>}"
