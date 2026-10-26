@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, Container, Typography, Link, Grid } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
     <Box 
       component="footer" 
@@ -37,7 +39,7 @@ const Footer = () => {
                   fontFamily: '"Inter", sans-serif'
                 }}
               >
-                Proyecto financiado por el Notre Dame–IBM Technology Ethics Lab @2024
+                {t('footer.funding')}
               </Typography>
               
               {/* Separador visual */}

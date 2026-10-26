@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Add as AddIcon } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const LogoVentana = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="60" height="75" viewBox="0 0 400 500" style={{ marginBottom: 24 }}>
@@ -83,14 +84,15 @@ const TruthIcon = styled('div')(({ theme }) => ({
 }));
 
 const WelcomeScreen = ({ onStartNewChat }) => {
+  const { t } = useTranslation();
   return (
     <WelcomeRoot>
       <LogoVentana />
       <WelcomeTitle variant="h1">
-        Welcome to Window to Truth!
+        {t('welcome.title')}
       </WelcomeTitle>
       <WelcomeDescription variant="body1">
-        Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.
+        {t('welcome.description')}
       </WelcomeDescription>
       <StartChatButton 
         variant="contained"
@@ -102,7 +104,7 @@ const WelcomeScreen = ({ onStartNewChat }) => {
           }} />
         }
       >
-        Start New Chat
+        {t('welcome.start')}
       </StartChatButton>
     </WelcomeRoot>
   );

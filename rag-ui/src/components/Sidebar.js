@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, Button, IconButton, CircularProgress, Tooltip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
 import { 
   Add as AddIcon, 
@@ -36,16 +37,6 @@ const SidebarTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.2rem',
   color: '#1e3a8a',
   fontWeight: 700
-}));
-
-const SessionInfo = styled(Box)(({ theme }) => ({
-  fontSize: '0.9rem',
-  color: '#64748b',
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1, 1.5),
-  background: 'rgba(30, 58, 138, 0.05)',
-  borderRadius: '6px',
-  borderLeft: '3px solid #1e3a8a'
 }));
 
 const NewChatButton = styled(Button)(({ theme }) => ({
@@ -117,7 +108,6 @@ const ChatListContainer = styled(Box)(({ theme }) => ({
 const Sidebar = ({ 
   chats, 
   loadingChats, 
-  sessionId, 
   chatId, 
   collapsed,
   onCreateNewChat, 
@@ -125,10 +115,12 @@ const Sidebar = ({
   onDeleteChat,
   onToggleCollapse 
 }) => {
+  const { t, i18n } = useTranslation();
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(i18n.language === 'es' ? 'es-CO' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -146,10 +138,11 @@ const Sidebar = ({
       }}>
         {!collapsed && (
           <SidebarTitle variant="h6">
-            Chats
+            {t('sidebar.title')}
           </SidebarTitle>
         )}        <IconButton
           onClick={onToggleCollapse}
+          aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           size="small"
           sx={{
             color: '#1e3a8a',
@@ -165,19 +158,12 @@ const Sidebar = ({
       
       {!collapsed && (
         <>
-          {/* Session indicator (only visible in development) */}
-          {process.env.NODE_ENV === 'development' && (
-            <SessionInfo>
-              Session: {sessionId.slice(-8)}
-            </SessionInfo>
-          )}
-          
           <NewChatButton 
             variant="contained" 
             onClick={onCreateNewChat}
             startIcon={<AddIcon />}
           >
-            New Chat
+            {t('sidebar.newChat')}
           </NewChatButton>
           
           <ChatListContainer>
@@ -187,7 +173,7 @@ const Sidebar = ({
               </Box>
             ) : chats.length === 0 ? (
               <NoChatsMessage>
-                No chats yet. Create a new one to get started.
+                {t('sidebar.empty')}
               </NoChatsMessage>
             ) : (
               <>
@@ -222,6 +208,7 @@ const Sidebar = ({
                     <IconButton
                       size="small"
                       onClick={(e) => onDeleteChat(chat.id, e)}
+                      aria-label={t('sidebar.delete')}
                       sx={{ 
                         opacity: 0.6,
                         color: '#64748b',
@@ -253,6 +240,7 @@ const Sidebar = ({
         }}>
           <IconButton
             onClick={onCreateNewChat}
+            aria-label={t('sidebar.newChat')}
             sx={{
               backgroundColor: '#917D26',
               color: 'white',

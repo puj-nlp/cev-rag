@@ -40,6 +40,7 @@ class Question:
     """Domain entity representing a user question."""
     text: str
     chat_id: UUID
+    language: str = "es"
 
 
 @dataclass

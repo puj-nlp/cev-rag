@@ -1,0 +1,174 @@
+{
+  "seo": {
+    "title": "Ventana a la Verdad",
+    "landingTitle": "Ventana a la Verdad · Cómo funciona el RAG sobre el archivo de la Comisión de la Verdad",
+    "chatTitle": "Ventana a la Verdad · Pregúntale al archivo",
+    "aboutTitle": "Ventana a la Verdad · Acerca de",
+    "description": "Ventana a la Verdad: sistema de preguntas y respuestas sensible al contexto cultural sobre el archivo de la Comisión de la Verdad de Colombia."
+  },
+  "header": {
+    "brand": "VENTANA A LA VERDAD",
+    "home": "Inicio",
+    "chat": "Chat",
+    "about": "Acerca de",
+    "github": "Código fuente en GitHub",
+    "language": "Idioma",
+    "switchTo": "View in English"
+  },
+  "footer": {
+    "funding": "Proyecto financiado por el Notre Dame–IBM Technology Ethics Lab @2024"
+  },
+  "welcome": {
+    "title": "¡Bienvenido a Ventana a la Verdad!",
+    "description": "Explora los testimonios de la Comisión de la Verdad de Colombia. Haz preguntas y obtén respuestas basadas en la información recopilada.",
+    "start": "Iniciar nuevo chat"
+  },
+  "sidebar": {
+    "title": "Chats",
+    "newChat": "Nuevo chat",
+    "empty": "Aún no hay chats. Crea uno nuevo para comenzar.",
+    "expand": "Expandir lista de chats",
+    "collapse": "Contraer lista de chats",
+    "delete": "Eliminar chat"
+  },
+  "chat": {
+    "notFound": "Chat no encontrado",
+    "greeting": "¡Hola! Soy Ventana a la Verdad.",
+    "greetingHint": "Pregúntame sobre los testimonios de la Comisión de la Verdad de Colombia.",
+    "placeholder": "Escribe tu pregunta...",
+    "send": "Enviar",
+    "references": "Referencias",
+    "page": "Pág. {{page}}",
+    "viewSource": "Ver fuente completa",
+    "confirmDelete": "¿Seguro que quieres eliminar este chat?",
+    "defaultTitle": "Nuevo Chat",
+    "errors": {
+      "loadChats": "No se pudieron cargar los chats. Verifica la configuración de la API.",
+      "loadChat": "No se pudo cargar el chat. Verifica la configuración de la API.",
+      "create": "No se pudo crear el chat. Verifica la configuración de la API.",
+      "delete": "No se pudo eliminar el chat. Verifica la configuración de la API.",
+      "send": "No se pudo enviar el mensaje. Verifica la configuración de la API."
+    }
+  },
+  "about": {
+    "intro": "Ventana a la Verdad es un chatbot que ofrece información confiable y profunda sobre el conflicto colombiano y el proceso de paz.",
+    "howTitle": "Cómo funciona",
+    "how1": "Pregunta sobre el conflicto colombiano, los acuerdos de paz o hechos clave. El chatbot aporta contexto preciso a partir de los datos oficiales de la Comisión de la Verdad de Colombia.",
+    "how2": "Algunas respuestas pueden tardar cerca de 20 segundos. Ten paciencia mientras el chatbot procesa tu solicitud.",
+    "how3": "Nuestras respuestas incluyen referencias para que la información que recibes sea confiable y precisa. Resumimos temas complejos para facilitar su comprensión sin perder la profundidad necesaria. Puedes hacer preguntas de seguimiento y la conversación puede seguir explorando temas relacionados.",
+    "commissionTitle": "Sobre la Comisión de la Verdad",
+    "commission1": "La Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición se creó como parte del Acuerdo de Paz de 2016 entre el gobierno colombiano y las FARC.",
+    "commission2": "Su trabajo entre 2018 y 2022 ha sido fundamental para comprender el conflicto armado y promover la reconciliación en toda Colombia.",
+    "resourcesTitle": "Recursos",
+    "resourcesLead": "Para profundizar, consulta el",
+    "reportLink": "Informe de la Comisión de la Verdad",
+    "and": "y",
+    "legacyLink": "The Legacy Project",
+    "contactTitle": "Contacto",
+    "reportUrl": "https://www.comisiondelaverdad.co/"
+  },
+  "landing": {
+    "eyebrow": "Comisión de la Verdad + Generación Aumentada por Recuperación",
+    "title": "Cómo responde Ventana a la Verdad a tus preguntas",
+    "subtitle": "Sigue una pregunta a través del sistema: de los documentos de la Comisión a los vectores, la recuperación y una respuesta con citas. Arrastra para rotar, usa la rueda para hacer zoom y haz clic en cualquier componente para saber más.",
+    "cta": "Pregúntale al asistente",
+    "canvasLabel": "Diagrama 3D interactivo de la arquitectura de cev-rag",
+    "loading": "Cargando escena 3D…",
+    "controls": {
+      "play": "Reproducir animación",
+      "pause": "Pausar animación",
+      "prev": "Etapa anterior",
+      "next": "Etapa siguiente",
+      "resetCamera": "Restablecer cámara",
+      "stages": "Etapas del proceso"
+    },
+    "stages": {
+      "ingest": "1. Documentos",
+      "chunk": "2. Fragmentación",
+      "embed": "3. Embedding",
+      "store": "4. Base vectorial",
+      "query": "5. Tu pregunta",
+      "retrieve": "6. Recuperación",
+      "generate": "7. Respuesta"
+    },
+    "stageHints": {
+      "ingest": "Se cargan informes, testimonios y documentos del archivo de la Comisión de la Verdad.",
+      "chunk": "Cada documento se divide en fragmentos lo bastante pequeños para compararlos con precisión.",
+      "embed": "Un modelo de embeddings convierte cada fragmento en un vector de 3.072 dimensiones que captura su significado.",
+      "store": "Los vectores se indexan en Milvus, una base de datos vectorial diseñada para búsquedas por similitud.",
+      "query": "Tu pregunta se convierte en un vector con el mismo modelo de embeddings.",
+      "retrieve": "Milvus encuentra los fragmentos más cercanos en significado a tu pregunta (top-k por similitud coseno).",
+      "generate": "El modelo de lenguaje redacta una respuesta usando solo esos fragmentos y cita cada fuente."
+    },
+    "simulator": {
+      "title": "Prueba una consulta simulada",
+      "hint": "Esta simulación se ejecuta en tu navegador y no consulta el archivo.",
+      "placeholder": "Escribe una pregunta o elige un ejemplo",
+      "run": "Simular",
+      "retrieved": "Fragmentos recuperados",
+      "answer": "Respuesta generada (simulada)",
+      "askReal": "Hacer esta pregunta al sistema real",
+      "samples": [
+        "¿Qué es la \"Paz Grande\"?",
+        "¿Cómo afectó el conflicto a los pueblos indígenas?",
+        "¿Qué recomendaciones hizo la Comisión?"
+      ],
+      "fragments": [
+        "Convocatoria a la paz grande (2022), pág. 22",
+        "Hay futuro si hay verdad: Informe final (2022), pág. 46",
+        "Fragmento de testimonio, volumen \"Cuando los pájaros no cantaban\""
+      ],
+      "simulatedAnswer": "A partir de los fragmentos recuperados, el sistema redacta una respuesta académica breve con citas en el texto [1][2] y una lista de fuentes, para que cada afirmación pueda rastrearse hasta el archivo de la Comisión."
+    },
+    "panel": {
+      "close": "Cerrar panel",
+      "inRepo": "En el repositorio",
+      "tech": "Tecnología"
+    },
+    "nodes": {
+      "documents": {
+        "title": "Documentos de la Comisión de la Verdad",
+        "body": "El archivo de la Comisión para el Esclarecimiento de la Verdad, la Convivencia y la No Repetición: el informe final, los volúmenes temáticos, testimonios y documentos de soporte. Sus metadatos (título, año, editorial, ISBN, página, URL) acompañan a cada fragmento para que las respuestas puedan citarlos.",
+        "tech": "Corpus JSON procesado"
+      },
+      "embedding": {
+        "title": "Módulo de embeddings",
+        "body": "Cada fragmento, y luego cada pregunta, se convierte en un vector denso con el modelo de embeddings de OpenAI. Los textos con significado similar quedan cerca en este espacio de alta dimensión, aunque usen palabras distintas.",
+        "tech": "text-embedding-3-large · 3.072 dimensiones"
+      },
+      "vectorStore": {
+        "title": "Base de datos vectorial (Milvus)",
+        "body": "Milvus guarda los vectores junto con los metadatos de su fuente y los indexa con HNSW para hacer búsquedas aproximadas de vecinos más cercanos por similitud coseno.",
+        "tech": "Milvus 2.3 · HNSW · COSINE"
+      },
+      "query": {
+        "title": "Tu pregunta",
+        "body": "Las preguntas viajan desde esta interfaz al backend en FastAPI, donde se validan y se convierten en vectores. Se conserva el historial reciente de la conversación para que puedas hacer preguntas de seguimiento.",
+        "tech": "React · FastAPI · historial en SQLite"
+      },
+      "llm": {
+        "title": "Generación de la respuesta (LLM)",
+        "body": "El modelo de lenguaje recibe tu pregunta y decide, mediante llamadas a herramientas, qué información recuperar. Responde exclusivamente con los fragmentos recuperados, en tu idioma, con citas numeradas, y evita revelar nombres de víctimas o lugares que pongan en riesgo a las personas.",
+        "tech": "gpt-4o-mini · tool calling · lineamientos éticos"
+      }
+    },
+    "fallback": {
+      "title": "El proceso RAG de un vistazo",
+      "note": "Estás viendo una versión ligera del diagrama interactivo porque tu dispositivo o navegador no admite WebGL o prefiere reducir el movimiento."
+    },
+    "short": {
+      "documents": "Documentos",
+      "embedding": "Embedding",
+      "vectorStore": "Base vectorial Milvus",
+      "query": "Tu pregunta",
+      "llm": "LLM"
+    },
+    "stageLabel": "Etapa {{current}} de {{total}}",
+    "fallbackButton": "Usar la versión ligera",
+    "interactiveButton": "Probar la versión 3D interactiva",
+    "question": "Pregunta"
+  },
+  "routes": {
+    "notFound": "Página no encontrada"
+  }
+}

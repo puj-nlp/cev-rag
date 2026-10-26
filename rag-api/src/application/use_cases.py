@@ -116,7 +116,7 @@ class QuestionAnsweringUseCase:
             if use_tools:
                 # Use tool-based approach
                 tool_response = await self._llm_service.generate_answer_with_tools(
-                    question.text, chat_history
+                    question.text, chat_history, language=question.language
                 )
                 
                 # Create response message
@@ -141,7 +141,8 @@ class QuestionAnsweringUseCase:
                 answer = await self._llm_service.generate_answer(
                     question.text, 
                     rag_context.context_text, 
-                    chat_history
+                    chat_history,
+                    language=question.language
                 )
                 
                 # Create response message
@@ -168,7 +169,11 @@ class QuestionAnsweringUseCase:
             
             # Create error response
             error_response = Message(
-                content="I apologize, but I couldn't process your question. Please try again.",
+                content=(
+                    "No pude procesar tu pregunta. Por favor, inténtalo de nuevo."
+                    if question.language == "es"
+                    else "I apologize, but I couldn't process your question. Please try again."
+                ),
                 is_bot=True,
                 timestamp=current_time
             )

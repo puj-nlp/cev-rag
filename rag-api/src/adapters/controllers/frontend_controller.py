@@ -1,13 +1,19 @@
 """Frontend controller - Endpoints específicos para el frontend sin requerir API key."""
 
-from typing import List
-from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Query, Request
-from fastapi.responses import JSONResponse
+from typing import List, Optional
+from uuid import UUID, uuid4
+from fastapi import APIRouter, HTTPException, Depends, Query, Request, Response
 
 from ...application.use_cases import ChatSessionUseCase, QuestionAnsweringUseCase
 from ...infrastructure.auth import require_frontend_access
-from ..controllers.dto import ChatSessionDTO, MessageDTO, QuestionRequestDTO, ChatRequestDTO
+from ...infrastructure.security import (
+    SESSION_COOKIE_NAME,
+    csrf_protect,
+    get_frontend_session,
+    is_valid_session_id,
+    set_session_cookie,
+)
+from ..controllers.dto import ChatSessionDTO, MessageDTO, QuestionRequestDTO, ChatRequestDTO, SessionRequestDTO
 from ..controllers.mappers import ChatSessionMapper, MessageMapper, QuestionMapper
 
 
@@ -22,76 +28,104 @@ class FrontendController:
     
     def _setup_routes(self):
         """Setup the routes for this controller."""
+        frontend_guards = [Depends(require_frontend_access), Depends(csrf_protect)]
+
+        self.router.add_api_route(
+            "/session",
+            self.establish_session,
+            methods=["POST"],
+            dependencies=frontend_guards
+        )
         # Chat management routes (frontend only)
         self.router.add_api_route(
             "/chats",
             self.list_chats,
             methods=["GET"],
             response_model=List[ChatSessionDTO],
-            dependencies=[Depends(require_frontend_access)]
+            dependencies=frontend_guards
         )
         self.router.add_api_route(
             "/chats",
             self.create_chat,
             methods=["POST"],
             response_model=ChatSessionDTO,
-            dependencies=[Depends(require_frontend_access)]
+            dependencies=frontend_guards
         )
         self.router.add_api_route(
             "/chats/{chat_id}",
             self.get_chat,
             methods=["GET"],
             response_model=ChatSessionDTO,
-            dependencies=[Depends(require_frontend_access)]
+            dependencies=frontend_guards
         )
         self.router.add_api_route(
             "/chats/{chat_id}",
             self.delete_chat,
             methods=["DELETE"],
-            dependencies=[Depends(require_frontend_access)]
+            dependencies=frontend_guards
         )
         self.router.add_api_route(
             "/chats/{chat_id}/messages",
             self.add_message,
             methods=["POST"],
             response_model=MessageDTO,
-            dependencies=[Depends(require_frontend_access)]
+            dependencies=frontend_guards
         )
 
-    async def list_chats(self, session_id: str = Query(None, description="Session ID to filter chats")) -> List[ChatSessionDTO]:
-        """List all chat sessions, optionally filtered by session ID."""
+    async def _get_owned_chat(self, chat_id: str, session_id: str):
+        """Return the chat if it belongs to the caller's session; 404 otherwise (no existence leak)."""
+        try:
+            chat_uuid = UUID(chat_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid chat ID format")
+
+        chat_session = await self._chat_use_case.get_chat_session(chat_uuid)
+        if not chat_session or chat_session.session_id != session_id:
+            raise HTTPException(status_code=404, detail="Chat not found")
+        return chat_session
+
+    async def establish_session(self, request: Request, response: Response, body: Optional[SessionRequestDTO] = None):
+        """
+        Ensure the HttpOnly session cookie exists.
+
+        Browsers that used the previous localStorage session can hand over their
+        legacy ID once so their existing chat history stays reachable.
+        """
+        current = request.cookies.get(SESSION_COOKIE_NAME)
+        if is_valid_session_id(current):
+            return {"status": "ok"}
+
+        legacy = body.legacy_session_id if body else None
+        session_id = legacy if is_valid_session_id(legacy) else str(uuid4())
+        set_session_cookie(response, session_id)
+        return {"status": "ok"}
+
+    async def list_chats(self, session_id: str = Depends(get_frontend_session)) -> List[ChatSessionDTO]:
+        """List the chat sessions that belong to the caller's session."""
         chat_sessions = await self._chat_use_case.list_chat_sessions(session_id=session_id)
         return [ChatSessionMapper.to_dto(chat) for chat in chat_sessions]
     
-    async def create_chat(self, chat_request: ChatRequestDTO) -> ChatSessionDTO:
-        """Create a new chat session."""
+    async def create_chat(
+        self,
+        chat_request: ChatRequestDTO,
+        session_id: str = Depends(get_frontend_session)
+    ) -> ChatSessionDTO:
+        """Create a new chat session bound to the caller's session."""
         chat_session = await self._chat_use_case.create_chat_session(
             chat_request.title, 
-            session_id=chat_request.session_id
+            session_id=session_id
         )
         return ChatSessionMapper.to_dto(chat_session)
     
-    async def get_chat(self, chat_id: str) -> ChatSessionDTO:
+    async def get_chat(self, chat_id: str, session_id: str = Depends(get_frontend_session)) -> ChatSessionDTO:
         """Get a specific chat session."""
-        try:
-            chat_uuid = UUID(chat_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid chat ID format")
-        
-        chat_session = await self._chat_use_case.get_chat_session(chat_uuid)
-        if not chat_session:
-            raise HTTPException(status_code=404, detail="Chat not found")
-        
+        chat_session = await self._get_owned_chat(chat_id, session_id)
         return ChatSessionMapper.to_dto(chat_session)
     
-    async def delete_chat(self, chat_id: str):
+    async def delete_chat(self, chat_id: str, session_id: str = Depends(get_frontend_session)):
         """Delete a chat session."""
-        try:
-            chat_uuid = UUID(chat_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid chat ID format")
-        
-        success = await self._chat_use_case.delete_chat_session(chat_uuid)
+        chat_session = await self._get_owned_chat(chat_id, session_id)
+        success = await self._chat_use_case.delete_chat_session(chat_session.id)
         if not success:
             raise HTTPException(status_code=404, detail="Chat not found")
         
@@ -101,13 +135,11 @@ class FrontendController:
         self,
         chat_id: str,
         question_request: QuestionRequestDTO,
-        use_tools: bool = Query(True, description="Whether to use the tool calling approach")
+        use_tools: bool = Query(True, description="Whether to use the tool calling approach"),
+        session_id: str = Depends(get_frontend_session)
     ) -> MessageDTO:
         """Process a question and add the response to the chat."""
-        try:
-            chat_uuid = UUID(chat_id)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid chat ID format")
+        chat_uuid = (await self._get_owned_chat(chat_id, session_id)).id
         
         try:
             # Convert request to domain entity

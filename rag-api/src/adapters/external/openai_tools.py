@@ -121,7 +121,18 @@ def get_rag_context_for_tools(question: str) -> dict:
         }
 
 
-def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI) -> Dict[str, Any]:
+LANGUAGE_INSTRUCTIONS = {
+    "es": "LANGUAGE: Write the entire answer in formal academic Spanish, regardless of the language of the sources or of previous messages. Keep the \"Sources\" heading exactly as shown.",
+    "en": "LANGUAGE: Write the entire answer in formal academic English, regardless of the language of the sources or of previous messages. Translate quoted content into English. Keep document titles in their original language and the \"Sources\" heading exactly as shown.",
+}
+
+
+def language_instruction(language: str) -> str:
+    """Return the system-prompt directive for the requested answer language."""
+    return LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["es"])
+
+
+def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI, language: str = "es") -> Dict[str, Any]:
     """
     Generates a response using OpenAI with the ability to call tools for more context.
     
@@ -129,6 +140,7 @@ def generate_answer_with_tools(question: str, chat_history: List[Dict], client: 
         question: User's question
         chat_history: Conversation history
         client: OpenAI client instance
+        language: Answer language ("es" or "en")
         
     Returns:
         Dict: Generated response and metadata
@@ -139,7 +151,7 @@ def generate_answer_with_tools(question: str, chat_history: List[Dict], client: 
         "content": """You are 'Window to Truth', an academic researcher specialized in the Colombian conflict and the Truth Commission. Generate responses based EXCLUSIVELY on the provided information following this EXACT format:
 
 RESPONSE FORMAT:
-- Write in Spanish (unless specifically asked otherwise)
+- Write in the language specified in the LANGUAGE section below
 - Structure responses in 2-3 concise, well-developed paragraphs maximum
 - Each paragraph should focus on one main concept or aspect
 - Use in-text citations in brackets [1], [2], [3] etc. for all claims
@@ -150,7 +162,7 @@ PARAGRAPH STRUCTURE:
 - Start each paragraph with a clear topic sentence defining the concept
 - Develop the idea with specific details from the sources
 - Include concrete examples, data, or testimonies when available
-- Use academic, formal Spanish language
+- Use academic, formal language
 - Connect concepts logically between paragraphs
 - Be direct and avoid repetitive information
 
@@ -192,7 +204,9 @@ Sources
 
 CRITICAL: Every citation number [1], [2], [3] used in the text MUST have a corresponding entry in the Sources section.
 
-IMPORTANT: Use the get_relevant_information tool to find comprehensive information about the topic before responding."""
+IMPORTANT: Use the get_relevant_information tool to find comprehensive information about the topic before responding.
+
+""" + language_instruction(language)
     }
     
     # Initialize messages

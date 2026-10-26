@@ -2,6 +2,10 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import { GitHub } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
+
+import LanguageSelector from './LanguageSelector';
+import useLocalizedPath from '../i18n/useLocalizedPath';
 
 const LogoVentana = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 400 500" style={{ verticalAlign: 'middle' }}>
@@ -22,13 +26,17 @@ const LogoVentana = () => (
 
 const Header = () => {
   const location = useLocation();
+  const { t } = useTranslation();
+  const localizedPath = useLocalizedPath();
+  const isActive = (path) => location.pathname === localizedPath(path)
+    || (path !== '/' && location.pathname.startsWith(localizedPath(path)));
 
   return (
     <AppBar position="static" elevation={0} sx={{ backgroundColor: '#e6e6e6' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* Logo and title */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box component={Link} to={localizedPath('/')} sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <LogoVentana/>
             <Typography
               noWrap
@@ -39,7 +47,7 @@ const Header = () => {
                 marginLeft: 1
               }}
             >
-              VENTANA A LA VERDAD
+              {t('header.brand')}
             </Typography>
           </Box>
           
@@ -47,42 +55,59 @@ const Header = () => {
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button
               component={Link}
-              to="/"
+              to={localizedPath('/')}
+              aria-current={isActive('/') ? 'page' : undefined}
               sx={{ 
                 mx: 1.5, 
                 color: 'primary.main', 
-                opacity: location.pathname === '/' ? 1 : 0.7,
+                opacity: isActive('/') ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
               }}
             >
-              Home
+              {t('header.home')}
             </Button>
             <Button
               component={Link}
-              to="/about"
+              to={localizedPath('/chat')}
+              aria-current={isActive('/chat') ? 'page' : undefined}
               sx={{ 
                 mx: 1.5, 
                 color: 'primary.main', 
-                opacity: location.pathname === '/' ? 1 : 0.7,
+                opacity: isActive('/chat') ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
               }}
             >
-              About
+              {t('header.chat')}
+            </Button>
+            <Button
+              component={Link}
+              to={localizedPath('/about')}
+              aria-current={isActive('/about') ? 'page' : undefined}
+              sx={{ 
+                mx: 1.5, 
+                color: 'primary.main', 
+                opacity: isActive('/about') ? 1 : 0.7,
+                '&:hover': { opacity: 1, backgroundColor: '#917D26' }
+              }}
+            >
+              {t('header.about')}
             </Button>
             <IconButton 
               component="a"
               href="https://github.com/puj-nlp/cev-rag"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={t('header.github')}
               sx={{ 
                 mx: 1.5, 
                 color: 'primary.main', 
-                opacity: location.pathname === '/' ? 1 : 0.7,
+                opacity: 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
               }}
             >
               <GitHub sx={{ fontSize: '1.2rem' }} />
             </IconButton>
+            <LanguageSelector />
           </Box>
         </Toolbar>
       </Container>

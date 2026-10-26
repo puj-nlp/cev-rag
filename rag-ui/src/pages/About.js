@@ -1,44 +1,48 @@
 import React from 'react';
 import { Container, Typography, Box, Grid, Paper, Link } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import WindowContainer from '../components/WindowContainer';
 
 const About = () => {
+  const { t } = useTranslation();
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
+      <Helmet><title>{t('seo.aboutTitle')}</title></Helmet>
       <WindowContainer>
         <Grid container spacing={6}>
         <Grid item xs={12} md={8}>
           <Paper sx={{ p: 4, borderRadius: 2 }}>
             <Typography variant="h4" paragraph>
-              Window to Truth is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.
+              {t('about.intro')}
             </Typography>
             
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
-              How It Works
+              {t('about.howTitle')}
             </Typography>
             
             <Typography variant="body1" paragraph>
-              Ask about the Colombian conflict, peace agreements, or key events. The chatbot provides accurate context using official data from the Colombian Truth Commission.
+              {t('about.how1')}
             </Typography>
             
             <Typography variant="body1" paragraph>
-              Some responses can be near 20 seconds. Please be patient while the chatbot processes your request.
+              {t('about.how2')}
             </Typography>
             
             <Typography variant="body1" paragraph>
-              Our answers include references to ensure the information you receive is reliable and precise. We summarize complex issues to make them easier to understand while providing the necessary depth. You are welcome to ask follow-up questions, and the conversation can continue exploring related topics.
+              {t('about.how3')}
             </Typography>
             
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              About the Truth Commission
+              {t('about.commissionTitle')}
             </Typography>
             
             <Typography variant="body1" paragraph>
-              The Commission for the Clarification of Truth, Coexistence, and Non-Repetition was established as part of the 2016 Peace Agreement between the Colombian government and the FARC.
+              {t('about.commission1')}
             </Typography>
             
             <Typography variant="body1">
-              Their work between 2018 and 2022 has been crucial for understanding the armed conflict and promoting reconciliation throughout Colombia.
+              {t('about.commission2')}
             </Typography>
 
           </Paper>
@@ -47,31 +51,31 @@ const About = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
-              Resources
+              {t('about.resourcesTitle')}
             </Typography>
             
             <Typography variant="body1" paragraph>
-              For further reading, explore the full: {' '}
+              {t('about.resourcesLead')}{' '}
               <Link 
-                href="https://comisiondelaverdad.co/en" 
+                href={t('about.reportUrl')} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 sx={{ fontWeight: 500 }}
               >
-                Colombian Truth Commission Report
+                {t('about.reportLink')}
               </Link>
-              {' '} and {' '}
+              {' '}{t('about.and')}{' '}
               <Link 
                 href="https://legacyproject.nd.edu/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 sx={{ fontWeight: 500 }}
               >
-                The Legacy Project
+                {t('about.legacyLink')}
               </Link>.
             </Typography>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, mt: 4 }}>
-              Contact
+              {t('about.contactTitle')}
             </Typography>
             
             <Typography variant="body1" paragraph>

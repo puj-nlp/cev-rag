@@ -15,8 +15,11 @@ services:
     environment:
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
+      - ENV=development
+      - COOKIE_SECURE=false
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      # python:3.11-slim has no curl; probe the health route with the standard library
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/')"]
       interval: 30s
       timeout: 5s
       retries: 5

@@ -38,14 +38,17 @@ def create_app() -> FastAPI:
         ]
     )
     
-    # Configure CORS
+    # Configure CORS: only the configured frontend origins may send credentialed requests
+    from .infrastructure.auth import api_key_manager
+    from .infrastructure.security import SecurityHeadersMiddleware, CSRF_HEADER_NAME
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, specify exact domains
+        allow_origins=sorted(api_key_manager.allowed_origins),
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", CSRF_HEADER_NAME],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
     
     # Initialize controllers
     health_controller = HealthController()

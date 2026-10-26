@@ -2,7 +2,7 @@ fastapi
 uvicorn
 pymilvus
 openai
-pydantic
+pydantic>=2
 python-dotenv
 python-multipart
 uuid

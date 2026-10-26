@@ -1,8 +1,10 @@
 services:
   rag-api:
     build: ./rag-api
+    # Not published publicly: reachable only through nginx (rag-ui) on the internal network.
+    # Bound to loopback for local admin/debugging (API-key endpoints, /docs).
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./rag-api:/app
     depends_on:
@@ -14,22 +16,28 @@ services:
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      # python:3.11-slim has no curl; probe the health route with the standard library
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/')"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
 
   rag-ui:
-    build: ./rag-ui
+    build:
+      context: ./rag-ui
+      args:
+        - REACT_APP_SITE_URL=https://${SITE_DOMAIN:-localhost}
     ports:
-      - "3000:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - rag-api
     volumes:
-      - ./rag-ui:/app
+      # Cloudflare Origin CA certificate: certs/origin.pem + certs/origin.key (see docs/SECURITY.md)
+      - ./certs:/etc/nginx/certs:ro
     environment:
-      - REACT_APP_API_URL=/api
+      - SITE_DOMAIN=${SITE_DOMAIN:-localhost}
       # No API key needed for frontend - uses secure backend proxy
 
   milvus:
@@ -42,10 +50,10 @@ services:
       - ETCD_DATA_DIR=/var/lib/milvus/etcd
       - ETCD_CONFIG_PATH=/milvus/configs/embedEtcd.yaml
       - COMMON_STORAGETYPE=local
+    # Milvus and its embedded etcd must never be exposed publicly
     ports:
-      - "19530:19530"
-      - "9091:9091"
-      - "2379:2379"
+      - "127.0.0.1:19530:19530"
+      - "127.0.0.1:9091:9091"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s

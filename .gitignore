@@ -10,3 +10,9 @@ __pycache__/
 monolith_old
 .idea
 .idea/*notebook/text_chunks_and_embeddings_df.csv
+certs/
+node_modules/
+rag-ui/build/
+rag-ui/package-lock.json
+rag-ui/public/sitemap.xml
+rag-ui/public/robots.txt

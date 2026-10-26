@@ -63,9 +63,13 @@ class OpenAILLMService(LLMService):
         self, 
         question: str, 
         context: str, 
-        chat_history: List[Dict[str, Any]]
+        chat_history: List[Dict[str, Any]],
+        language: str = "es"
     ) -> str:
         """Generate an answer using the LLM."""
+        # Import here to avoid circular imports
+        from .openai_tools import language_instruction
+
         # Build the prompt
         prompt = self._build_prompt(question, context, chat_history)
         
@@ -104,7 +108,9 @@ class OpenAILLMService(LLMService):
    - End with a brief synthesis if necessary
    - ALWAYS preserve complete reference citations
 
-Focus on delivering the most essential, actionable information in a concise format while maintaining all references."""
+Focus on delivering the most essential, actionable information in a concise format while maintaining all references.
+
+""" + language_instruction(language)
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -121,12 +127,13 @@ Focus on delivering the most essential, actionable information in a concise form
     async def generate_answer_with_tools(
         self, 
         question: str, 
-        chat_history: List[Dict[str, Any]]
+        chat_history: List[Dict[str, Any]],
+        language: str = "es"
     ) -> Dict[str, Any]:
         """Generate an answer using LLM with tool calling capabilities."""
         # Import here to avoid circular imports
         from .openai_tools import generate_answer_with_tools
-        result = generate_answer_with_tools(question, chat_history, self._client)
+        result = generate_answer_with_tools(question, chat_history, self._client, language=language)
         
         # Ensure all required fields are present for compatibility
         if "is_bot" not in result:

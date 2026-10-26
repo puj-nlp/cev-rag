@@ -1,5 +1,14 @@
 import React from 'react';
 import { Typography, Box } from '@mui/material';
+import DOMPurify from 'dompurify';
+
+// Only the markup produced by processMarkdown below is allowed through
+const SANITIZE_OPTIONS = {
+  ALLOWED_TAGS: ['strong', 'em', 'span', 'br'],
+  ALLOWED_ATTR: ['class'],
+};
+
+export const toSafeHtml = (html) => DOMPurify.sanitize(html, SANITIZE_OPTIONS);
 
 const FormattedMessage = ({ content, isUser = false }) => {
   // Función para procesar el texto y dividirlo en párrafos
@@ -82,7 +91,8 @@ const FormattedMessage = ({ content, isUser = false }) => {
             }
           }}
           dangerouslySetInnerHTML={{
-            __html: processMarkdown(paragraph)
+            // The text comes from the LLM (and indirectly from documents): never inject it unsanitized
+            __html: toSafeHtml(processMarkdown(paragraph))
           }}
         />
       ))}

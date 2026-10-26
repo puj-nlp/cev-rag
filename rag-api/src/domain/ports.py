@@ -67,7 +67,8 @@ class LLMService(ABC):
         self, 
         question: str, 
         context: str, 
-        chat_history: List[Dict[str, Any]]
+        chat_history: List[Dict[str, Any]],
+        language: str = "es"
     ) -> str:
         """Generate an answer using the LLM."""
         pass
@@ -76,7 +77,8 @@ class LLMService(ABC):
     async def generate_answer_with_tools(
         self, 
         question: str, 
-        chat_history: List[Dict[str, Any]]
+        chat_history: List[Dict[str, Any]],
+        language: str = "es"
     ) -> Dict[str, Any]:
         """Generate an answer using LLM with tool calling capabilities."""
         pass

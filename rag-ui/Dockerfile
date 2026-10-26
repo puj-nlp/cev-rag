@@ -12,18 +12,28 @@ RUN npm install
 COPY . .
 
 # Construir la aplicación
+# - Sin runtime chunk inline: permite una CSP con script-src 'self'
+# - Sin source maps en producción
+ARG REACT_APP_SITE_URL=https://localhost
+ENV INLINE_RUNTIME_CHUNK=false \
+    GENERATE_SOURCEMAP=false \
+    REACT_APP_SITE_URL=${REACT_APP_SITE_URL}
 RUN npm run build
 
 # Etapa de producción
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 
-# Copiar la configuración de nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Plantilla de nginx (envsubst solo sobre variables SITE_*) y fragmentos compartidos
+ENV NGINX_ENVSUBST_FILTER=^SITE_ \
+    SITE_DOMAIN=localhost
+COPY nginx/templates/ /etc/nginx/templates/
+COPY nginx/snippets/ /etc/nginx/snippets/
+RUN rm -f /etc/nginx/conf.d/default.conf
 
 # Copiar los archivos de build del frontend
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Exponer el puerto 80
-EXPOSE 80
+# Certificado Origin CA de Cloudflare montado en /etc/nginx/certs (origin.pem / origin.key)
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]

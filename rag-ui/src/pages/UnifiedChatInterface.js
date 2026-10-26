@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import { 
   Container, Box, Typography, TextField, Button, IconButton,
   CircularProgress, Paper, Avatar, Accordion, AccordionSummary, AccordionDetails
@@ -14,23 +16,22 @@ import { apiService } from '../services/api';
 import WindowContainer from '../components/WindowContainer';
 import Sidebar from '../components/Sidebar';
 import WelcomeScreen from '../components/WelcomeScreen';
+import useLocalizedPath from '../i18n/useLocalizedPath';
+
+// Matches the "Sources" heading the LLM appends before the bibliography
+const SOURCES_HEADING = /^\s*\**\s*(sources|fuentes)\b/i;
+
+// Mirrors MAX_QUESTION_LENGTH in rag-api/src/adapters/controllers/dto.py
+const MAX_QUESTION_LENGTH = 2000;
 
 const UnifiedChatInterface = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  
-  // Generate or retrieve unique session ID for this browser
-  const getSessionId = () => {
-    let sessionId = localStorage.getItem('ventana_session_id');
-    if (!sessionId) {
-      // Generate a unique ID using timestamp + random
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('ventana_session_id', sessionId);
-    }
-    return sessionId;
-  };
-
-  const sessionId = getSessionId();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { t, i18n } = useTranslation();
+  const localizedPath = useLocalizedPath();
+  // The browser session is an HttpOnly cookie managed by the backend (see services/api.js)
   
   // Estados para la lista de chats
   const [chats, setChats] = useState([]);
@@ -42,7 +43,8 @@ const UnifiedChatInterface = () => {
   // Estados para el chat activo
   const [activeChat, setActiveChat] = useState(null);
   const [loadingChat, setLoadingChat] = useState(false);
-  const [message, setMessage] = useState('');
+  // A draft can arrive from the landing simulator (?q=) through the navigation state
+  const [message, setMessage] = useState(location.state?.draft || '');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
@@ -50,6 +52,15 @@ const UnifiedChatInterface = () => {
   // Cargar la lista de chats al montar el componente
   useEffect(() => {
     fetchChats();
+  }, []);
+
+  // "Ask the real system" from the landing page: open a new chat with the question as a draft (mount only)
+  useEffect(() => {
+    const draft = searchParams.get('q');
+    if (draft && !chatId) {
+      handleCreateNewChat(draft.slice(0, MAX_QUESTION_LENGTH));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load specific chat when chatId changes
@@ -71,13 +82,13 @@ const UnifiedChatInterface = () => {
   const fetchChats = async () => {
     try {
       setLoadingChats(true);
-      // Send sessionId as parameter to filter chats by session
-      const response = await apiService.getChats(sessionId);
+      // The backend filters chats by the session cookie
+      const response = await apiService.getChats();
       setChats(response.data);
       setError(null);
     } catch (err) {
       console.error('Error loading chats:', err);
-      setError('Could not load chats. Please check your API configuration.');
+      setError(t('chat.errors.loadChats'));
     } finally {
       setLoadingChats(false);
     }
@@ -91,7 +102,7 @@ const UnifiedChatInterface = () => {
       setError(null);
     } catch (err) {
       console.error('Error loading chat:', err);
-      setError('Could not load chat. Please check your API configuration.');
+      setError(t('chat.errors.loadChat'));
       setActiveChat(null);
     } finally {
       setLoadingChat(false);
@@ -102,28 +113,31 @@ const UnifiedChatInterface = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleCreateNewChat = async () => {
+  const handleCreateNewChat = async (draft) => {
     try {
-      const response = await apiService.createChat('New Chat', sessionId);
+      const response = await apiService.createChat(t('chat.defaultTitle'));
       
       const newChat = response.data;
-      setChats([newChat, ...chats]);
-      navigate(`/chats/${newChat.id}`);
+      setChats(prev => [newChat, ...prev]);
+      navigate(localizedPath(`/chat/${newChat.id}`), {
+        replace: typeof draft === 'string',
+        state: typeof draft === 'string' ? { draft } : undefined
+      });
     } catch (err) {
       console.error('Error creating new chat:', err);
-      setError('Could not create chat. Please check your API configuration.');
+      setError(t('chat.errors.create'));
     }
   };
 
   const handleSelectChat = (id) => {
-    navigate(`/chats/${id}`);
+    navigate(localizedPath(`/chat/${id}`));
   };
 
   const handleDeleteChat = async (id, e) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!window.confirm('Are you sure you want to delete this chat?')) {
+    if (!window.confirm(t('chat.confirmDelete'))) {
       return;
     }
     
@@ -133,11 +147,11 @@ const UnifiedChatInterface = () => {
       
       // If the deleted chat is the active one, navigate to home
       if (chatId === id.toString()) {
-        navigate('/');
+        navigate(localizedPath('/chat'));
       }
     } catch (err) {
       console.error('Error deleting chat:', err);
-      setError('Could not delete chat. Please check your API configuration.');
+      setError(t('chat.errors.delete'));
     }
   };
 
@@ -181,7 +195,7 @@ const UnifiedChatInterface = () => {
       setMessage('');
       
       // Send the message to the API
-      const response = await apiService.sendMessage(activeChat.id, userMessage);
+      const response = await apiService.sendMessage(activeChat.id, userMessage, i18n.language);
       
       // Add the bot response to the chat
       setActiveChat(prev => ({
@@ -194,7 +208,7 @@ const UnifiedChatInterface = () => {
       
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Could not send message. Please check your API configuration.');
+      setError(t('chat.errors.send'));
     } finally {
       setSending(false);
     }
@@ -202,16 +216,6 @@ const UnifiedChatInterface = () => {
 
   const handleStartNewChatFromWelcome = async () => {
     await handleCreateNewChat();
-  };
-
-  // Optional function to clear session (can be useful for testing or support)
-  const clearSession = () => {
-    localStorage.removeItem('ventana_session_id');
-    setChats([]);
-    setActiveChat(null);
-    navigate('/');
-    // Reload to generate new session
-    window.location.reload();
   };
 
   const toggleSidebar = () => {
@@ -222,7 +226,6 @@ const UnifiedChatInterface = () => {
     <Sidebar
       chats={chats}
       loadingChats={loadingChats}
-      sessionId={sessionId}
       chatId={chatId}
       collapsed={sidebarCollapsed}
       onCreateNewChat={handleCreateNewChat}
@@ -249,7 +252,7 @@ const UnifiedChatInterface = () => {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
           <Typography variant="body1" color="text.secondary">
-            Chat not found
+            {t('chat.notFound')}
           </Typography>
         </Box>
       );
@@ -313,8 +316,8 @@ const UnifiedChatInterface = () => {
                 <BotIcon sx={{ fontSize: 32 }} />
               </Avatar>
               <Typography variant="body1" color="text.secondary" textAlign="center">
-                Hello! I'm Window to Truth.<br />
-                Ask me about the testimonies from Colombia's Truth Commission.
+                {t('chat.greeting')}<br />
+                {t('chat.greetingHint')}
               </Typography>
             </Box>
           ) : (
@@ -359,7 +362,7 @@ const UnifiedChatInterface = () => {
                     <Box>
                       <ReactMarkdown
                         components={{                        h3: ({ children }) => {
-                          if (children && children.toString().toLowerCase().includes('sources')) {
+                          if (children && SOURCES_HEADING.test(children.toString())) {
                             // Hide sources section completely
                             return null;
                           }
@@ -368,9 +371,7 @@ const UnifiedChatInterface = () => {
                           p: ({ children }) => {
                             const text = children?.toString() || '';
                             // Hide source citations and "Sources" text completely
-                            if (text.includes('ISBN') && text.includes('CEV') || 
-                                text.toLowerCase().includes('sources') ||
-                                text.toLowerCase() === 'sources') {
+                            if ((text.includes('ISBN') && text.includes('CEV')) || SOURCES_HEADING.test(text)) {
                               return null;
                             }
                             return <Typography variant="body1" sx={{ mb: 1.5, lineHeight: 1.6 }}>{children}</Typography>;
@@ -388,9 +389,7 @@ const UnifiedChatInterface = () => {
                           li: ({ children }) => {
                             const text = children?.toString() || '';
                             // Hide source citations and "Sources" text in list items
-                            if (text.includes('ISBN') && text.includes('CEV') || 
-                                text.toLowerCase().includes('sources') ||
-                                text.toLowerCase() === 'sources') {
+                            if ((text.includes('ISBN') && text.includes('CEV')) || SOURCES_HEADING.test(text)) {
                               return null;
                             }
                             return (
@@ -427,7 +426,7 @@ const UnifiedChatInterface = () => {
                                   alignItems: 'center'
                                 }}
                               >
-                                📚 Referencias
+                                📚 {t('chat.references')}
                               </Typography>
                               <Box sx={{ pl: 1 }}>
                                 {children}
@@ -481,7 +480,7 @@ const UnifiedChatInterface = () => {
                               gap: 1
                               }}
                             >
-                              📚 Referencias ({msg.references.length})
+                              📚 {t('chat.references')} ({msg.references.length})
                             </Typography>
                           </AccordionSummary>
                           <AccordionDetails>
@@ -545,7 +544,7 @@ const UnifiedChatInterface = () => {
                                           fontWeight: 'medium'
                                         }}
                                       >
-                                        Pág. {ref.page}
+                                        {t('chat.page', { page: ref.page })}
                                       </Typography>
                                     )}
                                     {ref.year && (
@@ -579,7 +578,7 @@ const UnifiedChatInterface = () => {
                                         }
                                       }}
                                     >
-                                      🔗 Ver fuente completa
+                                      🔗 {t('chat.viewSource')}
                                     </Typography>
                                   )}
                                 </Box>
@@ -629,7 +628,8 @@ const UnifiedChatInterface = () => {
         >
           <TextField
             fullWidth
-            placeholder="Write your question..."
+            placeholder={t('chat.placeholder')}
+            inputProps={{ maxLength: MAX_QUESTION_LENGTH, 'aria-label': t('chat.placeholder') }}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={sending}
@@ -650,7 +650,7 @@ const UnifiedChatInterface = () => {
                     }
                   }}
                 >
-                  {sending ? <CircularProgress size={24} /> : 'Send'}
+                  {sending ? <CircularProgress size={24} /> : t('chat.send')}
                 </Button>
               ),
               sx: { 
@@ -672,6 +672,7 @@ const UnifiedChatInterface = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
+      <Helmet><title>{t('seo.chatTitle')}</title></Helmet>
       <WindowContainer>
         {renderSidebar()}
         <Box sx={{ flex: 1 }}>

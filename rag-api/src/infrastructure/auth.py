@@ -52,8 +52,10 @@ class APIKeyManager:
         referer = request.headers.get("referer")
         host = request.headers.get("host")
         
-        # For development with docker, check host header too
-        if host in ["localhost:3000", "localhost:80", "127.0.0.1:3000", "127.0.0.1:80"]:
+        # For development with docker, check host header too.
+        # The Host header is client-controlled, so this shortcut is never allowed in production.
+        is_development = os.getenv("ENV", "production").strip().lower() == "development"
+        if is_development and host in ["localhost:3000", "localhost:80", "127.0.0.1:3000", "127.0.0.1:80"]:
             return True
         
         # Check origin header

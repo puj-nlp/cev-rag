@@ -1,0 +1,174 @@
+{
+  "seo": {
+    "title": "Window to Truth",
+    "landingTitle": "Window to Truth · How the RAG behind the Truth Commission archive works",
+    "chatTitle": "Window to Truth · Ask the archive",
+    "aboutTitle": "Window to Truth · About",
+    "description": "Window to Truth: a culturally aware question-answering system over the archive of Colombia's Truth Commission."
+  },
+  "header": {
+    "brand": "WINDOW TO TRUTH",
+    "home": "Home",
+    "chat": "Chat",
+    "about": "About",
+    "github": "Source code on GitHub",
+    "language": "Language",
+    "switchTo": "Ver en español"
+  },
+  "footer": {
+    "funding": "Project funded by the Notre Dame–IBM Technology Ethics Lab @2024"
+  },
+  "welcome": {
+    "title": "Welcome to Window to Truth!",
+    "description": "Explore testimonies from Colombia's Truth Commission. Ask questions and get answers based on the compiled information.",
+    "start": "Start New Chat"
+  },
+  "sidebar": {
+    "title": "Chats",
+    "newChat": "New Chat",
+    "empty": "No chats yet. Create a new one to get started.",
+    "expand": "Expand chat list",
+    "collapse": "Collapse chat list",
+    "delete": "Delete chat"
+  },
+  "chat": {
+    "notFound": "Chat not found",
+    "greeting": "Hello! I'm Window to Truth.",
+    "greetingHint": "Ask me about the testimonies from Colombia's Truth Commission.",
+    "placeholder": "Write your question...",
+    "send": "Send",
+    "references": "References",
+    "page": "p. {{page}}",
+    "viewSource": "View full source",
+    "confirmDelete": "Are you sure you want to delete this chat?",
+    "defaultTitle": "New conversation",
+    "errors": {
+      "loadChats": "Could not load chats. Please check your API configuration.",
+      "loadChat": "Could not load chat. Please check your API configuration.",
+      "create": "Could not create chat. Please check your API configuration.",
+      "delete": "Could not delete chat. Please check your API configuration.",
+      "send": "Could not send message. Please check your API configuration."
+    }
+  },
+  "about": {
+    "intro": "Window to Truth is a chatbot that provides reliable and insightful information about the Colombian conflict and peace process.",
+    "howTitle": "How It Works",
+    "how1": "Ask about the Colombian conflict, peace agreements, or key events. The chatbot provides accurate context using official data from the Colombian Truth Commission.",
+    "how2": "Some responses can take close to 20 seconds. Please be patient while the chatbot processes your request.",
+    "how3": "Our answers include references to ensure the information you receive is reliable and precise. We summarize complex issues to make them easier to understand while providing the necessary depth. You are welcome to ask follow-up questions, and the conversation can continue exploring related topics.",
+    "commissionTitle": "About the Truth Commission",
+    "commission1": "The Commission for the Clarification of Truth, Coexistence, and Non-Repetition was established as part of the 2016 Peace Agreement between the Colombian government and the FARC.",
+    "commission2": "Their work between 2018 and 2022 has been crucial for understanding the armed conflict and promoting reconciliation throughout Colombia.",
+    "resourcesTitle": "Resources",
+    "resourcesLead": "For further reading, explore the full",
+    "reportLink": "Colombian Truth Commission Report",
+    "and": "and",
+    "legacyLink": "The Legacy Project",
+    "contactTitle": "Contact",
+    "reportUrl": "https://comisiondelaverdad.co/en"
+  },
+  "landing": {
+    "eyebrow": "Truth Commission + Retrieval-Augmented Generation",
+    "title": "How Window to Truth answers your questions",
+    "subtitle": "Follow a question through the system: from the Commission's documents to vectors, retrieval and a cited answer. Drag to rotate, scroll to zoom and click any component to learn more.",
+    "cta": "Ask the assistant",
+    "canvasLabel": "Interactive 3D diagram of the cev-rag architecture",
+    "loading": "Loading 3D scene…",
+    "controls": {
+      "play": "Play animation",
+      "pause": "Pause animation",
+      "prev": "Previous stage",
+      "next": "Next stage",
+      "resetCamera": "Reset camera",
+      "stages": "Pipeline stages"
+    },
+    "stages": {
+      "ingest": "1. Documents",
+      "chunk": "2. Chunking",
+      "embed": "3. Embedding",
+      "store": "4. Vector store",
+      "query": "5. Your question",
+      "retrieve": "6. Retrieval",
+      "generate": "7. Answer"
+    },
+    "stageHints": {
+      "ingest": "Reports, testimonies and documents from the Truth Commission archive are loaded.",
+      "chunk": "Each document is split into fragments small enough to be compared precisely.",
+      "embed": "An embedding model turns every fragment into a 3,072-dimension vector that captures its meaning.",
+      "store": "The vectors are indexed in Milvus, a vector database built for similarity search.",
+      "query": "Your question is turned into a vector with the same embedding model.",
+      "retrieve": "Milvus finds the fragments closest in meaning to your question (top-k by cosine similarity).",
+      "generate": "The language model writes an answer using only those fragments, citing each source."
+    },
+    "simulator": {
+      "title": "Try a simulated query",
+      "hint": "This simulation runs in your browser and does not query the archive.",
+      "placeholder": "Type a question or pick an example",
+      "run": "Simulate",
+      "retrieved": "Retrieved fragments",
+      "answer": "Generated answer (simulated)",
+      "askReal": "Ask this to the real system",
+      "samples": [
+        "What is the \"Paz Grande\"?",
+        "How did the conflict affect Indigenous peoples?",
+        "What recommendations did the Commission make?"
+      ],
+      "fragments": [
+        "Convocatoria a la paz grande (2022), p. 22",
+        "Hay futuro si hay verdad: Informe final (2022), p. 46",
+        "Testimony fragment, Volume \"Cuando los pájaros no cantaban\""
+      ],
+      "simulatedAnswer": "Based on the retrieved fragments, the system writes a short academic answer with in-text citations [1][2] and a list of sources, so every claim can be traced back to the Commission's archive."
+    },
+    "panel": {
+      "close": "Close panel",
+      "inRepo": "In the repository",
+      "tech": "Technology"
+    },
+    "nodes": {
+      "documents": {
+        "title": "Truth Commission documents",
+        "body": "The archive of the Commission for the Clarification of Truth, Coexistence and Non-Repetition: the final report, thematic volumes, testimonies and supporting documents. Their metadata (title, year, publisher, ISBN, page, URL) travels with every fragment so answers can cite them.",
+        "tech": "Processed JSON corpus"
+      },
+      "embedding": {
+        "title": "Embedding module",
+        "body": "Every fragment, and later every question, is converted into a dense vector with OpenAI's embedding model. Texts with similar meaning end up close to each other in this high-dimensional space, even when they use different words.",
+        "tech": "text-embedding-3-large · 3,072 dimensions"
+      },
+      "vectorStore": {
+        "title": "Vector store (Milvus)",
+        "body": "Milvus stores the vectors together with their source metadata and indexes them with HNSW for fast approximate nearest-neighbour search using cosine similarity.",
+        "tech": "Milvus 2.3 · HNSW · COSINE"
+      },
+      "query": {
+        "title": "Your question",
+        "body": "Questions are sent from this interface to the FastAPI backend, validated and embedded. The conversation history (last messages) is kept so you can ask follow-up questions.",
+        "tech": "React · FastAPI · SQLite chat history"
+      },
+      "llm": {
+        "title": "Answer generation (LLM)",
+        "body": "The language model receives your question and decides, through tool calling, which information to retrieve. It answers exclusively from the retrieved fragments, in your language, with numbered citations, and it avoids revealing victims' names or locations that could put people at risk.",
+        "tech": "gpt-4o-mini · tool calling · ethical guidelines"
+      }
+    },
+    "fallback": {
+      "title": "The RAG pipeline at a glance",
+      "note": "You are seeing a lightweight version of the interactive diagram because your device or browser does not support WebGL or prefers reduced motion."
+    },
+    "short": {
+      "documents": "Documents",
+      "embedding": "Embedding",
+      "vectorStore": "Milvus vector store",
+      "query": "Your question",
+      "llm": "LLM"
+    },
+    "stageLabel": "Stage {{current}} of {{total}}",
+    "fallbackButton": "Use the lightweight version",
+    "interactiveButton": "Try the interactive 3D version",
+    "question": "Question"
+  },
+  "routes": {
+    "notFound": "Page not found"
+  }
+}

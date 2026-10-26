@@ -71,5 +71,6 @@ class QuestionMapper:
         """Convert question request to Question entity."""
         return Question(
             text=request.question,
-            chat_id=chat_id
+            chat_id=chat_id,
+            language=request.language
         )
