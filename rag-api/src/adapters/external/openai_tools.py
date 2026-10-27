@@ -1,6 +1,7 @@
 """OpenAI tools implementation for RAG context retrieval."""
 
 import json
+import re
 from typing import List, Dict, Any
 from openai import OpenAI
 
@@ -132,6 +133,19 @@ def language_instruction(language: str) -> str:
     return LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["es"])
 
 
+def reasoning_params(model: str) -> Dict[str, Any]:
+    """
+    Extra request params for reasoning models (GPT-6 and later).
+
+    Chat Completions only allows function tools on these models with
+    reasoning_effort="none"; older models (e.g. gpt-4o-mini) reject the param.
+    """
+    match = re.match(r"gpt-(\d+)", model)
+    if match and int(match.group(1)) >= 6:
+        return {"reasoning_effort": "none"}
+    return {}
+
+
 def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI, model: str, language: str = "es") -> Dict[str, Any]:
     """
     Generates a response using OpenAI with the ability to call tools for more context.
@@ -239,7 +253,8 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
                     "function": RAG_FUNCTION
                 }],
                 tool_choice="auto",
-                temperature=0.3
+                temperature=0.3,
+                **reasoning_params(model)
             )
             
             # Get the response message
@@ -316,7 +331,8 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
             model=model,
             messages=messages,
             temperature=0.3,
-            max_completion_tokens=800
+            max_completion_tokens=800,
+            **reasoning_params(model)
         )
         
         # Format the final response with sources section

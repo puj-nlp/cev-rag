@@ -68,7 +68,7 @@ class OpenAILLMService(LLMService):
     ) -> str:
         """Generate an answer using the LLM."""
         # Import here to avoid circular imports
-        from .openai_tools import language_instruction
+        from .openai_tools import language_instruction, reasoning_params
 
         # Build the prompt
         prompt = self._build_prompt(question, context, chat_history)
@@ -115,7 +115,8 @@ Focus on delivering the most essential, actionable information in a concise form
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_completion_tokens=500
+                max_completion_tokens=500,
+                **reasoning_params(self._model)
             )
             
             return response.choices[0].message.content

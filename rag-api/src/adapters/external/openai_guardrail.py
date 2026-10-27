@@ -6,6 +6,8 @@ from typing import List, Dict, Any, Optional
 
 from openai import OpenAI
 
+from .openai_tools import reasoning_params
+
 # Number of previous messages the classifier sees to resolve follow-up questions
 HISTORY_WINDOW = 4
 
@@ -92,7 +94,8 @@ class OpenAIIntentClassifier:
                 ],
                 response_format={"type": "json_object"},
                 temperature=0,
-                max_completion_tokens=300
+                max_completion_tokens=300,
+                **reasoning_params(self._model)
             )
         except Exception as e:
             print(f"Guardrail classifier unavailable, falling back to retrieval threshold: {e}")
