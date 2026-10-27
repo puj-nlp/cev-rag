@@ -131,6 +131,17 @@ class QuestionAnsweringUseCase:
                     chat_session.updated_at = current_time
                     await self._chat_repository.save(chat_session)
                     return rejection
+                if decision.reply:
+                    # Small talk (greetings, thanks...) is answered without retrieval
+                    small_talk = Message(
+                        content=decision.reply,
+                        is_bot=True,
+                        timestamp=current_time
+                    )
+                    chat_session.messages.append(small_talk)
+                    chat_session.updated_at = current_time
+                    await self._chat_repository.save(chat_session)
+                    return small_talk
             
             # Prepare chat history
             chat_history = [

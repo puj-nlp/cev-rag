@@ -11,7 +11,7 @@ import pytest
 
 from src.adapters.external.openai_guardrail import IntentResult, parse_classifier_output
 from src.adapters.repositories.memory_chat_repository import InMemoryChatSessionRepository
-from src.application.guardrails import OUT_OF_SCOPE_MESSAGES, DomainGuardrail
+from src.application.guardrails import OUT_OF_SCOPE_MESSAGES, SMALL_TALK_MESSAGES, DomainGuardrail
 from src.application.use_cases import QuestionAnsweringUseCase
 from src.domain.entities import ChatSession, Document, Message, Question
 from src.domain.ports import TimestampService
@@ -194,3 +194,35 @@ def test_out_of_scope_flag_round_trips_through_sqlite(tmp_path):
     run(repository.save(chat))
     stored = run(repository.find_by_id(chat.id))
     assert [m.out_of_scope for m in stored.messages] == [False, True]
+
+
+def small_talk(reply="¡Hola! Pregúntame sobre el Informe Final."):
+    return IntentResult(in_scope=True, reason="greeting", standalone_query="hola", small_talk=True, reply=reply)
+
+
+def test_small_talk_is_answered_without_retrieval_or_llm():
+    use_case, repository, chat, embeddings, llm = build(FakeClassifier(small_talk()), [0.0])
+    message = ask(use_case, chat, "hola")
+
+    assert message.out_of_scope is False
+    assert message.content == "¡Hola! Pregúntame sobre el Informe Final."
+    assert embeddings.texts == []  # greetings never pass the relevance threshold
+    assert llm.calls == 0
+    stored = run(repository.find_by_id(chat.id))
+    assert [m.content for m in stored.messages] == ["hola", message.content]
+
+
+@pytest.mark.parametrize("language", ["es", "en"])
+def test_small_talk_without_reply_uses_default_message(language):
+    use_case, _, chat, _, _ = build(FakeClassifier(small_talk(reply="")), [0.0])
+    assert ask(use_case, chat, "hello", language).content == SMALL_TALK_MESSAGES[language]
+
+
+def test_classifier_output_parses_small_talk():
+    result = parse_classifier_output(
+        '{"in_scope": true, "small_talk": true, "reason": "greeting", "standalone_query": "hola", "reply": " ¡Hola! "}', "hola"
+    )
+    assert result == IntentResult(in_scope=True, reason="greeting", standalone_query="hola", small_talk=True, reply="¡Hola!")
+
+    result = parse_classifier_output('{"in_scope": true, "small_talk": "yes", "reply": 3}', "q")
+    assert result.small_talk is False and result.reply == ""

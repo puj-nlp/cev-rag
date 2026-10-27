@@ -80,3 +80,4 @@ class ScopeDecision:
     reason: str
     standalone_query: str
     max_score: Optional[float] = None
+    reply: Optional[str] = None  # Direct answer for small talk (greetings, thanks...)

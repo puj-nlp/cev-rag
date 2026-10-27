@@ -23,6 +23,23 @@ def out_of_scope_message(language: str) -> str:
     return OUT_OF_SCOPE_MESSAGES.get(language, OUT_OF_SCOPE_MESSAGES["es"])
 
 
+SMALL_TALK_MESSAGES = {
+    "es": (
+        "¡Hola! Soy Ventana a la Verdad, un asistente sobre el Informe Final de la Comisión de la Verdad. "
+        "¿Qué te gustaría saber sobre el conflicto armado, las víctimas o las recomendaciones del Informe?"
+    ),
+    "en": (
+        "Hi! I'm Window to Truth, an assistant about the Final Report of the Truth Commission. "
+        "What would you like to know about the armed conflict, the victims or the Report's recommendations?"
+    ),
+}
+
+
+def small_talk_message(language: str) -> str:
+    """Return the default small talk reply for the requested language."""
+    return SMALL_TALK_MESSAGES.get(language, SMALL_TALK_MESSAGES["es"])
+
+
 class IntentClassifier(Protocol):
     """Anything that can classify a question; returns None when unavailable."""
 
@@ -67,6 +84,14 @@ class DomainGuardrail(QueryGuardrail):
                 if not intent.in_scope:
                     print(f"Guardrail: rejected by intent classifier ({intent.reason})")
                     return ScopeDecision(in_scope=False, reason="intent", standalone_query=intent.standalone_query)
+                if intent.small_talk:
+                    # Greetings, thanks, "what can you do?": answer directly, they never pass the threshold
+                    return ScopeDecision(
+                        in_scope=True,
+                        reason="small_talk",
+                        standalone_query=intent.standalone_query,
+                        reply=intent.reply or small_talk_message(language)
+                    )
                 standalone_query = intent.standalone_query
 
         embedding = await self._embedding_service.generate_embedding(standalone_query)
