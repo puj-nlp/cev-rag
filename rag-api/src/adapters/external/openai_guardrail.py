@@ -92,7 +92,7 @@ class OpenAIIntentClassifier:
                 ],
                 response_format={"type": "json_object"},
                 temperature=0,
-                max_tokens=300
+                max_completion_tokens=300
             )
         except Exception as e:
             print(f"Guardrail classifier unavailable, falling back to retrieval threshold: {e}")

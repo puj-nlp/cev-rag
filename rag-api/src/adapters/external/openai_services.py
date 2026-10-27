@@ -115,7 +115,7 @@ Focus on delivering the most essential, actionable information in a concise form
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=500
+                max_completion_tokens=500
             )
             
             return response.choices[0].message.content
@@ -133,7 +133,7 @@ Focus on delivering the most essential, actionable information in a concise form
         """Generate an answer using LLM with tool calling capabilities."""
         # Import here to avoid circular imports
         from .openai_tools import generate_answer_with_tools
-        result = generate_answer_with_tools(question, chat_history, self._client, language=language)
+        result = generate_answer_with_tools(question, chat_history, self._client, self._model, language=language)
         
         # Ensure all required fields are present for compatibility
         if "is_bot" not in result:

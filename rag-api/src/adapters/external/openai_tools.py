@@ -132,7 +132,7 @@ def language_instruction(language: str) -> str:
     return LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["es"])
 
 
-def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI, language: str = "es") -> Dict[str, Any]:
+def generate_answer_with_tools(question: str, chat_history: List[Dict], client: OpenAI, model: str, language: str = "es") -> Dict[str, Any]:
     """
     Generates a response using OpenAI with the ability to call tools for more context.
     
@@ -140,6 +140,7 @@ def generate_answer_with_tools(question: str, chat_history: List[Dict], client: 
         question: User's question
         chat_history: Conversation history
         client: OpenAI client instance
+        model: OpenAI completion model name (from COMPLETION_MODEL)
         language: Answer language ("es" or "en")
         
     Returns:
@@ -231,7 +232,7 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
         try:
             # Call OpenAI API with tools
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=messages,
                 tools=[{
                     "type": "function",
@@ -312,10 +313,10 @@ IMPORTANT: Use the get_relevant_information tool to find comprehensive informati
     # If we reach the turn limit, generate final response with all collected context
     try:
         final_response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             messages=messages,
             temperature=0.3,
-            max_tokens=800
+            max_completion_tokens=800
         )
         
         # Format the final response with sources section
