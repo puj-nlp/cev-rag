@@ -35,6 +35,7 @@ const Header = () => {
 
   const navItems = [
     { path: '/', label: t('header.home') },
+    { path: '/como-funciona', label: t('header.howItWorks') },
     { path: '/chat', label: t('header.chat') },
     { path: '/about', label: t('header.about') },
   ];
@@ -112,6 +113,19 @@ const Header = () => {
               }}
             >
               {t('header.home')}
+            </Button>
+            <Button
+              component={Link}
+              to={localizedPath('/como-funciona')}
+              aria-current={isActive('/como-funciona') ? 'page' : undefined}
+              sx={{ 
+                mx: { sm: 0.5, md: 1.5 }, 
+                color: 'primary.main', 
+                opacity: isActive('/como-funciona') ? 1 : 0.7,
+                '&:hover': { opacity: 1, backgroundColor: '#917D26' }
+              }}
+            >
+              {t('header.howItWorks')}
             </Button>
             <Button
               component={Link}

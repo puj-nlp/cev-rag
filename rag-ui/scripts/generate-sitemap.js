@@ -7,7 +7,7 @@ const path = require('path');
 
 const SITE_URL = (process.env.REACT_APP_SITE_URL || 'https://localhost').replace(/\/$/, '');
 const LANGUAGES = ['es', 'en'];
-const PAGES = ['/', '/chat', '/about'];
+const PAGES = ['/', '/como-funciona', '/chat', '/about'];
 
 const url = (lang, page) => `${SITE_URL}/${lang}${page === '/' ? '/' : page}`;
 

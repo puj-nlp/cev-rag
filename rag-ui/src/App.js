@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import LocaleLayout from './components/LocaleLayout';
 import UnifiedChatInterface from './pages/UnifiedChatInterface';
 import About from './pages/About';
+import HomePage from './pages/HomePage';
 import { detectLanguage } from './i18n/detectLanguage';
 
 // The 3D landing (three.js) is code-split so the chat bundle does not download it
@@ -33,7 +34,8 @@ function App() {
             {/* nginx redirects "/" by language in production; this covers local development */}
             <Route path="/" element={<Navigate to={`/${detectLanguage()}/`} replace />} />
             <Route path="/:lang" element={<LocaleLayout />}>
-              <Route index element={<LandingPage />} />
+              <Route index element={<HomePage />} />
+              <Route path="como-funciona" element={<LandingPage />} />
               <Route path="chat" element={<UnifiedChatInterface />} />
               <Route path="chat/:chatId" element={<UnifiedChatInterface />} />
               <Route path="chats/:chatId" element={<LegacyChatRedirect />} />

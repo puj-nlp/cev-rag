@@ -1,6 +1,7 @@
 {
   "seo": {
     "title": "Ventana a la Verdad",
+    "homeTitle": "Ventana a la Verdad",
     "landingTitle": "Ventana a la Verdad · Cómo funciona el RAG sobre el archivo de la Comisión de la Verdad",
     "chatTitle": "Ventana a la Verdad · Pregúntale al archivo",
     "aboutTitle": "Ventana a la Verdad · Acerca de",
@@ -14,7 +15,8 @@
     "github": "Código fuente en GitHub",
     "menu": "Menú de navegación",
     "language": "Idioma",
-    "switchTo": "View in English"
+    "switchTo": "View in English",
+    "howItWorks": "Cómo funciona"
   },
   "footer": {
     "funding": "Proyecto financiado por el Notre Dame–IBM Technology Ethics Lab @2024"
@@ -172,5 +174,13 @@
   },
   "routes": {
     "notFound": "Página no encontrada"
+  },
+  "home": {
+    "eyebrow": "Comisión de la Verdad · Inteligencia artificial",
+    "title": "Ventana a la Verdad",
+    "subtitle": "Un sistema de preguntas y respuestas sensible al contexto cultural sobre el archivo de la Comisión de la Verdad de Colombia.",
+    "videoTitle": "Video de presentación de Ventana a la Verdad",
+    "ctaChat": "Pregúntale al asistente",
+    "ctaHowItWorks": "Cómo funciona"
   }
 }

@@ -1,6 +1,7 @@
 {
   "seo": {
     "title": "Window to Truth",
+    "homeTitle": "Window to Truth",
     "landingTitle": "Window to Truth · How the RAG behind the Truth Commission archive works",
     "chatTitle": "Window to Truth · Ask the archive",
     "aboutTitle": "Window to Truth · About",
@@ -14,7 +15,8 @@
     "github": "Source code on GitHub",
     "menu": "Navigation menu",
     "language": "Language",
-    "switchTo": "Ver en español"
+    "switchTo": "Ver en español",
+    "howItWorks": "How it works"
   },
   "footer": {
     "funding": "Project funded by the Notre Dame–IBM Technology Ethics Lab @2024"
@@ -172,5 +174,13 @@
   },
   "routes": {
     "notFound": "Page not found"
+  },
+  "home": {
+    "eyebrow": "Truth Commission · Artificial intelligence",
+    "title": "Window to Truth",
+    "subtitle": "A culturally aware question-answering system over the archive of Colombia's Truth Commission.",
+    "videoTitle": "Window to Truth presentation video",
+    "ctaChat": "Ask the assistant",
+    "ctaHowItWorks": "How it works"
   }
 }
