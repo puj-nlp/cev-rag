@@ -1,6 +1,7 @@
 """Dependency injection container for the application."""
 
 from functools import lru_cache
+from typing import Optional
 
 from ..domain.ports import (
     ChatSessionRepository,
@@ -8,13 +9,16 @@ from ..domain.ports import (
     EmbeddingService,
     LLMService,
     RAGContextBuilder,
-    TimestampService
+    TimestampService,
+    QueryGuardrail
 )
 from ..application.use_cases import ChatSessionUseCase, QuestionAnsweringUseCase
+from ..application.guardrails import DomainGuardrail
 from ..adapters.repositories.memory_chat_repository import InMemoryChatSessionRepository
 from ..adapters.repositories.sqlite_chat_repository import SQLiteChatSessionRepository
 from ..adapters.repositories.milvus_vector_db import MilvusVectorDatabase
 from ..adapters.external.openai_services import OpenAIEmbeddingService, OpenAILLMService
+from ..adapters.external.openai_guardrail import OpenAIIntentClassifier
 from .services import DefaultRAGContextBuilder, DefaultTimestampService
 from .config import config_service
 
@@ -82,6 +86,24 @@ def get_timestamp_service() -> TimestampService:
     return DefaultTimestampService()
 
 
+@lru_cache()
+def get_guardrail() -> Optional[QueryGuardrail]:
+    """Get the domain guardrail, or None when disabled via GUARDRAILS_ENABLED=false."""
+    guardrail_config = config_service.guardrails
+    if not guardrail_config.enabled:
+        return None
+    return DomainGuardrail(
+        classifier=OpenAIIntentClassifier(
+            api_key=config_service.openai.api_key,
+            model=guardrail_config.classifier_model
+        ),
+        embedding_service=get_embedding_service(),
+        vector_db=get_vector_database(),
+        relevance_threshold=guardrail_config.relevance_threshold,
+        top_k=config_service.app.top_k
+    )
+
+
 # Use case instances
 @lru_cache()
 def get_chat_use_case() -> ChatSessionUseCase:
@@ -101,5 +123,6 @@ def get_question_answering_use_case() -> QuestionAnsweringUseCase:
         embedding_service=get_embedding_service(),
         llm_service=get_llm_service(),
         context_builder=get_context_builder(),
-        timestamp_service=get_timestamp_service()
+        timestamp_service=get_timestamp_service(),
+        guardrail=get_guardrail()
     )

@@ -108,12 +108,20 @@ class SQLiteChatSessionRepository(ChatSessionRepository):
                 references = json.loads(row['message_references'])
             except (json.JSONDecodeError, TypeError):
                 references = None
+
+        metadata = {}
+        if row['metadata']:
+            try:
+                metadata = json.loads(row['metadata']) or {}
+            except (json.JSONDecodeError, TypeError):
+                metadata = {}
         
         return Message(
             content=row['content'],
             is_bot=bool(row['is_bot']),
             timestamp=datetime.fromisoformat(row['timestamp']),
-            references=references
+            references=references,
+            out_of_scope=bool(metadata.get('out_of_scope', False))
         )
     
     async def save(self, chat_session: ChatSession) -> ChatSession:
@@ -147,17 +155,20 @@ class SQLiteChatSessionRepository(ChatSessionRepository):
                         except (TypeError, ValueError):
                             references_json = None
                     
+                    metadata_json = json.dumps({"out_of_scope": True}) if message.out_of_scope else None
+                    
                     conn.execute('''
                         INSERT INTO messages 
-                        (chat_id, content, is_bot, timestamp, message_references, message_order)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        (chat_id, content, is_bot, timestamp, message_references, message_order, metadata)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         str(chat_session.id),
                         message.content,
                         message.is_bot,
                         message.timestamp.isoformat() if message.timestamp else datetime.now().isoformat(),
                         references_json,
-                        i
+                        i,
+                        metadata_json
                     ))
                 
                 conn.commit()

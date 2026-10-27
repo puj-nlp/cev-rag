@@ -6,7 +6,7 @@ import NodeLabel from './NodeLabel';
 import useHoverCursor from './useHoverCursor';
 
 /** The user's prompt entering the system. */
-const QueryNode = ({ anim, active, label, onSelect }) => {
+const QueryNode = ({ anim, active, label, onSelect, compact }) => {
   const mesh = useRef();
   const { hovered, bind } = useHoverCursor();
 
@@ -28,7 +28,7 @@ const QueryNode = ({ anim, active, label, onSelect }) => {
           flatShading
         />
       </mesh>
-      <NodeLabel text={label} active={active} onSelect={onSelect} offset={[0, 0.9, 0]} />
+      <NodeLabel text={label} active={active} compact={compact} onSelect={onSelect} offset={[0, 0.9, 0]} />
     </group>
   );
 };

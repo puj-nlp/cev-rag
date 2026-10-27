@@ -13,6 +13,7 @@ class Message:
     is_bot: bool = False
     timestamp: Optional[datetime] = None
     references: Optional[List[Dict[str, Any]]] = None
+    out_of_scope: bool = False
 
 
 @dataclass
@@ -70,3 +71,12 @@ class ChatResponse:
     content: str
     references: List[Reference]
     contexts_used: Optional[List[Dict[str, Any]]] = None
+
+
+@dataclass
+class ScopeDecision:
+    """Domain entity representing the guardrail verdict for an incoming question."""
+    in_scope: bool
+    reason: str
+    standalone_query: str
+    max_score: Optional[float] = None

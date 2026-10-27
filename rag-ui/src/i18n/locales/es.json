@@ -12,6 +12,7 @@
     "chat": "Chat",
     "about": "Acerca de",
     "github": "Código fuente en GitHub",
+    "menu": "Menú de navegación",
     "language": "Idioma",
     "switchTo": "View in English"
   },
@@ -74,6 +75,7 @@
     "cta": "Pregúntale al asistente",
     "canvasLabel": "Diagrama 3D interactivo de la arquitectura de cev-rag",
     "loading": "Cargando escena 3D…",
+    "touchHint": "Arrastra para rotar · pellizca para hacer zoom",
     "controls": {
       "play": "Reproducir animación",
       "pause": "Pausar animación",

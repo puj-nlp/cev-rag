@@ -1,14 +1,16 @@
 import React from 'react';
-import { Box, Chip, Drawer, IconButton, Link, Typography, useMediaQuery } from '@mui/material';
+import { Box, Chip, Drawer, IconButton, Link, Typography } from '@mui/material';
 import { Close as CloseIcon, Code as CodeIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
 import { NODES, repoFileUrl } from './content';
+import useViewport from '../../hooks/useViewport';
 
 /** Explanatory panel for the clicked component, with links to the code that implements it. */
 const InfoPanel = ({ nodeId, onClose }) => {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery('(max-width:900px)');
+  // Bottom sheet on phones and tablets, side panel on desktop
+  const isMobile = !useViewport().isDesktop;
   const node = nodeId ? NODES[nodeId] : null;
 
   return (
@@ -16,7 +18,7 @@ const InfoPanel = ({ nodeId, onClose }) => {
       anchor={isMobile ? 'bottom' : 'right'}
       open={Boolean(node)}
       onClose={onClose}
-      PaperProps={{ sx: { width: isMobile ? '100%' : 400, maxHeight: isMobile ? '70vh' : '100%', p: 3 } }}
+      PaperProps={{ sx: { width: isMobile ? '100%' : '25rem', maxWidth: '100vw', maxHeight: isMobile ? '70vh' : '100%', p: { xs: 2, sm: 3 } } }}
     >
       {node && (
         <Box role="region" aria-labelledby="info-panel-title">

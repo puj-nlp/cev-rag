@@ -10,7 +10,7 @@ const HEIGHT = 2.8;
 const TOP_K = 5;
 
 /** Milvus collection: a cloud of vectors inside a cylinder; the top-k neighbours light up on retrieval. */
-const VectorStore = ({ anim, active, label, onSelect, pointCount }) => {
+const VectorStore = ({ anim, active, label, onSelect, pointCount, lite, compact }) => {
   const cloud = useRef();
   const geometry = useRef();
   const hits = useRef([]);
@@ -59,7 +59,7 @@ const VectorStore = ({ anim, active, label, onSelect, pointCount }) => {
     <group position={NODES.vectorStore.position}>
       <group onClick={onSelect} {...bind}>
         <mesh>
-          <cylinderGeometry args={[RADIUS, RADIUS, HEIGHT, 40, 1, true]} />
+          <cylinderGeometry args={[RADIUS, RADIUS, HEIGHT, lite ? 20 : 40, 1, true]} />
           <meshStandardMaterial
             color={COLORS.navy}
             emissive={COLORS.sky}
@@ -79,13 +79,13 @@ const VectorStore = ({ anim, active, label, onSelect, pointCount }) => {
           </points>
           {nearest.map((position, i) => (
             <mesh key={i} ref={(el) => (hits.current[i] = el)} position={position} visible={false}>
-              <sphereGeometry args={[0.09, 12, 12]} />
+              <sphereGeometry args={[0.09, lite ? 8 : 12, lite ? 8 : 12]} />
               <meshBasicMaterial color={COLORS.gold} toneMapped={false} />
             </mesh>
           ))}
         </group>
       </group>
-      <NodeLabel text={label} active={active} onSelect={onSelect} offset={[0, -2.1, 0]} />
+      <NodeLabel text={label} active={active} compact={compact} onSelect={onSelect} offset={[0, -2.1, 0]} />
     </group>
   );
 };

@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 
 import useLocalizedPath from '../../i18n/useLocalizedPath';
+import useViewport from '../../hooks/useViewport';
 import { NODE_IDS, QUERY_STAGE_INDEX, STAGES } from './content';
 import useDeviceTier from './useDeviceTier';
 import ControlsBar from './ControlsBar';
@@ -51,6 +52,7 @@ const LandingPage = () => {
   const { t } = useTranslation();
   const localizedPath = useLocalizedPath();
   const tier = useDeviceTier();
+  const { isTouch } = useViewport();
   const [mode, setMode] = useState(tier === 'fallback' ? 'fallback' : '3d');
 
   const anim = useRef({ time: 0, stage: 0, stageTime: 0, mode: 'tour' });
@@ -134,18 +136,52 @@ const LandingPage = () => {
 
       <Container maxWidth="xl">
         <Grid container spacing={3}>
-          <Grid item xs={12} lg={8}>
+          <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ overflow: 'hidden', borderRadius: 3 }}>
               {mode === '3d' ? (
                 <SceneErrorBoundary fallback={fallback} onError={() => setMode('fallback')}>
-                  <Box ref={sceneRef} sx={{ height: { xs: 380, md: 540 }, bgcolor: '#0b1437', touchAction: 'none' }}>
+                  <Box
+                    ref={sceneRef}
+                    sx={{
+                      position: 'relative',
+                      // Fluid height: a proportion of the viewport on phones/tablets, fixed on desktop
+                      height: { xs: '60vh', sm: '65vh', md: '33.75rem' },
+                      minHeight: '20rem',
+                      maxHeight: { xs: '36rem', md: 'none' },
+                      bgcolor: '#0b1437',
+                      touchAction: 'none',
+                    }}
+                  >
+                    {isTouch && (
+                      <Typography
+                        variant="caption"
+                        aria-hidden
+                        sx={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          zIndex: 20,
+                          px: 1.25,
+                          py: 0.25,
+                          borderRadius: 999,
+                          bgcolor: 'rgba(11, 20, 55, 0.75)',
+                          color: '#f8fafc',
+                          fontFamily: '"Inter", sans-serif',
+                          whiteSpace: 'nowrap',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {t('landing.touchHint')}
+                      </Typography>
+                    )}
                     <Suspense fallback={<SceneLoading label={t('landing.loading')} />}>
                       <RagScene
                         anim={anim}
                         stage={stage}
                         playing={playing}
                         visible={visible}
-                        initialQuality={tier === 'high' ? 'high' : 'low'}
+                        initialQuality={tier === 'fallback' ? 'low' : tier}
                         labels={labels}
                         selectedNode={selectedNode}
                         controlsRef={controlsRef}
@@ -172,8 +208,8 @@ const LandingPage = () => {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} lg={4}>
-            <Paper sx={{ p: 3, borderRadius: 3, height: '100%' }}>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, height: '100%' }}>
               {mode === '3d' && (
                 <Box sx={{ mb: 3 }} aria-live="polite">
                   <Typography variant="caption" color="text.secondary" sx={{ fontFamily: '"Inter", sans-serif' }}>

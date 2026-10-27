@@ -1,7 +1,7 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton } from '@mui/material';
+import React, { useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Container, Box, Avatar, IconButton, Menu, MenuItem } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import { GitHub } from '@mui/icons-material';
+import { GitHub, Menu as MenuIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 
 import LanguageSelector from './LanguageSelector';
@@ -30,13 +30,21 @@ const Header = () => {
   const localizedPath = useLocalizedPath();
   const isActive = (path) => location.pathname === localizedPath(path)
     || (path !== '/' && location.pathname.startsWith(localizedPath(path)));
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const closeMenu = () => setMenuAnchor(null);
+
+  const navItems = [
+    { path: '/', label: t('header.home') },
+    { path: '/chat', label: t('header.chat') },
+    { path: '/about', label: t('header.about') },
+  ];
 
   return (
     <AppBar position="static" elevation={0} sx={{ backgroundColor: '#e6e6e6' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* Logo and title */}
-          <Box component={Link} to={localizedPath('/')} sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Box component={Link} to={localizedPath('/')} sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', minWidth: 0 }}>
             <LogoVentana/>
             <Typography
               noWrap
@@ -44,21 +52,60 @@ const Header = () => {
                 fontFamily: '"Cinzel", serif !important',
                 fontWeight: 700,
                 color: 'primary.main',
-                marginLeft: 1
+                marginLeft: 1,
+                fontSize: { xs: '0.95rem', sm: '1rem' }
               }}
             >
               {t('header.brand')}
             </Typography>
           </Box>
           
-          {/* Navigation links */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* Phones: navigation collapses into a menu */}
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', flexShrink: 0 }}>
+            <LanguageSelector />
+            <IconButton
+              onClick={(event) => setMenuAnchor(event.currentTarget)}
+              aria-label={t('header.menu')}
+              aria-controls={menuAnchor ? 'header-menu' : undefined}
+              aria-haspopup="true"
+              sx={{ color: 'primary.main' }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu id="header-menu" anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu}>
+              {navItems.map(({ path, label }) => (
+                <MenuItem
+                  key={path}
+                  component={Link}
+                  to={localizedPath(path)}
+                  selected={isActive(path)}
+                  aria-current={isActive(path) ? 'page' : undefined}
+                  onClick={closeMenu}
+                >
+                  {label}
+                </MenuItem>
+              ))}
+              <MenuItem
+                component="a"
+                href="https://github.com/puj-nlp/cev-rag"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+              >
+                <GitHub sx={{ fontSize: '1.2rem', mr: 1 }} />
+                {t('header.github')}
+              </MenuItem>
+            </Menu>
+          </Box>
+
+          {/* Navigation links (tablet and desktop) */}
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', flexShrink: 0 }}>
             <Button
               component={Link}
               to={localizedPath('/')}
               aria-current={isActive('/') ? 'page' : undefined}
               sx={{ 
-                mx: 1.5, 
+                mx: { sm: 0.5, md: 1.5 }, 
                 color: 'primary.main', 
                 opacity: isActive('/') ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
@@ -71,7 +118,7 @@ const Header = () => {
               to={localizedPath('/chat')}
               aria-current={isActive('/chat') ? 'page' : undefined}
               sx={{ 
-                mx: 1.5, 
+                mx: { sm: 0.5, md: 1.5 }, 
                 color: 'primary.main', 
                 opacity: isActive('/chat') ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
@@ -84,7 +131,7 @@ const Header = () => {
               to={localizedPath('/about')}
               aria-current={isActive('/about') ? 'page' : undefined}
               sx={{ 
-                mx: 1.5, 
+                mx: { sm: 0.5, md: 1.5 }, 
                 color: 'primary.main', 
                 opacity: isActive('/about') ? 1 : 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }
@@ -99,7 +146,7 @@ const Header = () => {
               rel="noopener noreferrer"
               aria-label={t('header.github')}
               sx={{ 
-                mx: 1.5, 
+                mx: { sm: 0.5, md: 1.5 }, 
                 color: 'primary.main', 
                 opacity: 0.7,
                 '&:hover': { opacity: 1, backgroundColor: '#917D26' }

@@ -12,6 +12,7 @@
     "chat": "Chat",
     "about": "About",
     "github": "Source code on GitHub",
+    "menu": "Navigation menu",
     "language": "Language",
     "switchTo": "Ver en español"
   },
@@ -74,6 +75,7 @@
     "cta": "Ask the assistant",
     "canvasLabel": "Interactive 3D diagram of the cev-rag architecture",
     "loading": "Loading 3D scene…",
+    "touchHint": "Drag to rotate · pinch to zoom",
     "controls": {
       "play": "Play animation",
       "pause": "Pause animation",

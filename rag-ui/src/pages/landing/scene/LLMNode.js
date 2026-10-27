@@ -6,7 +6,8 @@ import NodeLabel from './NodeLabel';
 import useHoverCursor from './useHoverCursor';
 
 /** Language model that writes the cited answer from the retrieved fragments. */
-const LLMNode = ({ anim, active, label, onSelect }) => {
+const LLMNode = ({ anim, active, label, onSelect, lite, compact }) => {
+  const segments = lite ? 16 : 32;
   const core = useRef();
   const ringA = useRef();
   const ringB = useRef();
@@ -24,7 +25,7 @@ const LLMNode = ({ anim, active, label, onSelect }) => {
     <group position={NODES.llm.position}>
       <group onClick={onSelect} {...bind} scale={hovered ? 1.08 : 1}>
         <mesh ref={core}>
-          <sphereGeometry args={[0.85, 32, 32]} />
+          <sphereGeometry args={[0.85, segments, segments]} />
           <meshStandardMaterial
             color={COLORS.navy}
             emissive={COLORS.gold}
@@ -34,15 +35,15 @@ const LLMNode = ({ anim, active, label, onSelect }) => {
           />
         </mesh>
         <mesh ref={ringA}>
-          <torusGeometry args={[1.25, 0.03, 8, 64]} />
+          <torusGeometry args={[1.25, 0.03, 8, segments * 2]} />
           <meshBasicMaterial color={COLORS.gold} transparent opacity={0.7} />
         </mesh>
         <mesh ref={ringB}>
-          <torusGeometry args={[1.45, 0.02, 8, 64]} />
+          <torusGeometry args={[1.45, 0.02, 8, segments * 2]} />
           <meshBasicMaterial color={COLORS.sky} transparent opacity={0.5} />
         </mesh>
       </group>
-      <NodeLabel text={label} active={active} onSelect={onSelect} offset={[0, -1.9, 0]} />
+      <NodeLabel text={label} active={active} compact={compact} onSelect={onSelect} offset={[0, -1.9, 0]} />
     </group>
   );
 };

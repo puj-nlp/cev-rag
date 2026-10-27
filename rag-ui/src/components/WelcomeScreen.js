@@ -31,6 +31,9 @@ const WelcomeRoot = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   [theme.breakpoints.down('md')]: {
     padding: theme.spacing(5, 2.5)
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(3, 1.5)
   }
 }));
 
@@ -44,6 +47,9 @@ const WelcomeTitle = styled(Typography)(({ theme }) => ({
   lineHeight: 1.2,
   [theme.breakpoints.down('md')]: {
     fontSize: '2rem'
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.6rem'
   }
 }));
 
@@ -53,7 +59,7 @@ const WelcomeDescription = styled(Typography)(({ theme }) => ({
   fontFamily: '"Inter", sans-serif !important',
   lineHeight: 1.6,
   marginBottom: theme.spacing(5),
-  maxWidth: '500px',
+  maxWidth: '31.25rem',
   marginLeft: 'auto',
   marginRight: 'auto'
 }));
@@ -66,7 +72,7 @@ const StartChatButton = styled(Button)(({ theme }) => ({
   borderRadius: '10px',
   fontFamily: '"Inter", sans-serif !important',
   fontWeight: 600,
-  fontSize: '16px',
+  fontSize: '1rem',
   transition: 'all 0.3s ease',
   boxShadow: '0 4px 15px rgba(30, 58, 138, 0.3)',
   '&:hover': {

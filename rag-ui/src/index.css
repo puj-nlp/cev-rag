@@ -1,5 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
+/* Responsive base: fluid root size (rem scales with the viewport) and no horizontal overflow */
+html {
+  font-size: clamp(15px, 0.9rem + 0.2vw, 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip; /* unlike hidden, keeps position: sticky working where supported */
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Long URLs and references in answers must wrap instead of widening the page */
+.markdown-content,
+.chat-message {
+  overflow-wrap: anywhere;
+}
+
 /* Global font application - Inter as default for UI elements */
 * {
   font-family: 'Inter', sans-serif !important;

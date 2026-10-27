@@ -6,7 +6,7 @@ import { Object3D, QuadraticBezierCurve3, Vector3 } from 'three';
 import { STAGES } from '../content';
 
 /** Curved connection between two components; particles travel along it during its stages. */
-const Flow = ({ anim, from, to, stages, color, count, lift = 1.2, speed = 0.45, size = 0.11 }) => {
+const Flow = ({ anim, from, to, stages, color, count, lift = 1.2, speed = 0.45, size = 0.11, lite = false }) => {
   const particles = useRef();
   const dummy = useMemo(() => new Object3D(), []);
 
@@ -39,7 +39,7 @@ const Flow = ({ anim, from, to, stages, color, count, lift = 1.2, speed = 0.45, 
     <group>
       <QuadraticBezierLine start={from} end={to} mid={mid} color={color} lineWidth={1} transparent opacity={0.25} />
       <instancedMesh ref={particles} args={[null, null, count]} visible={false}>
-        <sphereGeometry args={[1, 10, 10]} />
+        <sphereGeometry args={[1, lite ? 6 : 10, lite ? 6 : 10]} />
         <meshBasicMaterial color={color} toneMapped={false} />
       </instancedMesh>
     </group>

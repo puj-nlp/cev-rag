@@ -53,6 +53,14 @@ class AppConfig:
     top_k: int = 5
 
 
+@dataclass
+class GuardrailConfig:
+    """Domain guardrail settings (intent classifier + retrieval threshold)."""
+    enabled: bool = True
+    relevance_threshold: float = 0.35  # Minimum COSINE similarity of the best Milvus hit
+    classifier_model: str = "gpt-4o-mini"
+
+
 class ConfigService:
     """Service for managing application configuration."""
     
@@ -62,6 +70,7 @@ class ConfigService:
         self._milvus_config = self._load_milvus_config()
         self._openai_config = self._load_openai_config()
         self._app_config = AppConfig()
+        self._guardrail_config = self._load_guardrail_config()
         self._auto_discover_dimensions()
     
     def _auto_discover_dimensions(self):
@@ -101,6 +110,14 @@ class ConfigService:
             embedding_model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-large"),
             completion_model=os.getenv("COMPLETION_MODEL", "gpt-4o-mini"),
             embedding_dimension=int(os.getenv("EMBEDDING_DIMENSION", "3072"))
+        )
+    
+    def _load_guardrail_config(self) -> GuardrailConfig:
+        """Load domain guardrail configuration from environment."""
+        return GuardrailConfig(
+            enabled=os.getenv("GUARDRAILS_ENABLED", "true").lower() == "true",
+            relevance_threshold=float(os.getenv("RELEVANCE_THRESHOLD", "0.35")),
+            classifier_model=os.getenv("GUARDRAIL_MODEL", "gpt-4o-mini")
         )
     
     def _load_database_config(self) -> DatabaseConfig:
@@ -157,6 +174,11 @@ class ConfigService:
     def app(self) -> AppConfig:
         """Get application configuration."""
         return self._app_config
+    
+    @property
+    def guardrails(self) -> GuardrailConfig:
+        """Get domain guardrail configuration."""
+        return self._guardrail_config
 
 
 # Global configuration instance

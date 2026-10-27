@@ -47,7 +47,8 @@ class MessageMapper:
             content=entity.content,
             is_bot=entity.is_bot,
             timestamp=entity.timestamp.isoformat() if entity.timestamp else None,
-            references=entity.references
+            references=entity.references,
+            out_of_scope=entity.out_of_scope
         )
     
     @staticmethod
@@ -59,7 +60,8 @@ class MessageMapper:
             content=dto.content,
             is_bot=dto.is_bot,
             timestamp=datetime.fromisoformat(dto.timestamp) if dto.timestamp else None,
-            references=dto.references
+            references=dto.references,
+            out_of_scope=dto.out_of_scope
         )
 
 

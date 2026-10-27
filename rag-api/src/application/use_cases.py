@@ -11,8 +11,10 @@ from ..domain.ports import (
     EmbeddingService, 
     LLMService, 
     RAGContextBuilder,
-    TimestampService
+    TimestampService,
+    QueryGuardrail
 )
+from .guardrails import out_of_scope_message
 
 
 class ChatSessionUseCase:
@@ -67,9 +69,11 @@ class QuestionAnsweringUseCase:
         embedding_service: EmbeddingService,
         llm_service: LLMService,
         context_builder: RAGContextBuilder,
-        timestamp_service: TimestampService
+        timestamp_service: TimestampService,
+        guardrail: Optional[QueryGuardrail] = None
     ):
         self._chat_repository = chat_repository
+        self._guardrail = guardrail
         self._vector_db = vector_db
         self._embedding_service = embedding_service
         self._llm_service = llm_service
@@ -107,6 +111,27 @@ class QuestionAnsweringUseCase:
             chat_session.title = new_title
         
         try:
+            # Domain guardrail: reject off-topic questions before retrieval and generation
+            if self._guardrail is not None:
+                previous_history = [
+                    {"content": msg.content, "is_bot": msg.is_bot}
+                    for msg in chat_session.messages[-11:-1]
+                ]
+                decision = await self._guardrail.evaluate(
+                    question.text, previous_history, language=question.language
+                )
+                if not decision.in_scope:
+                    rejection = Message(
+                        content=out_of_scope_message(question.language),
+                        is_bot=True,
+                        timestamp=current_time,
+                        out_of_scope=True
+                    )
+                    chat_session.messages.append(rejection)
+                    chat_session.updated_at = current_time
+                    await self._chat_repository.save(chat_session)
+                    return rejection
+            
             # Prepare chat history
             chat_history = [
                 {"content": msg.content, "is_bot": msg.is_bot}

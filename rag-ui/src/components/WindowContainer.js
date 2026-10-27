@@ -66,6 +66,9 @@ const WindowContent = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     padding: theme.spacing(2)
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1)
   }
 }));
 

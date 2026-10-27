@@ -8,9 +8,12 @@ import useHoverCursor from './useHoverCursor';
 // Reports, testimonies and supporting documents
 const PAGE_COLORS = ['#60a5fa', '#fcd116', '#cbd5e1'];
 const PAGES_PER_STACK = 6;
+const PAGES_PER_STACK_LITE = 3;
+const STACK_HEIGHT = 0.96;
 
 /** Stacks of pages representing the Truth Commission archive; they fan out while being chunked. */
-const DocumentsCluster = ({ anim, active, label, onSelect }) => {
+const DocumentsCluster = ({ anim, active, label, onSelect, lite, compact }) => {
+  const pagesPerStack = lite ? PAGES_PER_STACK_LITE : PAGES_PER_STACK;
   const group = useRef();
   const pages = useRef([]);
   const { hovered, bind } = useHoverCursor();
@@ -18,14 +21,14 @@ const DocumentsCluster = ({ anim, active, label, onSelect }) => {
   const layout = useMemo(
     () =>
       PAGE_COLORS.flatMap((color, stack) =>
-        Array.from({ length: PAGES_PER_STACK }, (_, level) => ({
+        Array.from({ length: pagesPerStack }, (_, level) => ({
           color,
           x: (stack - 1) * 1.05,
-          y: level * 0.16 - 0.5,
+          y: level * (STACK_HEIGHT / pagesPerStack) - 0.5,
           tilt: (Math.sin(stack * 7 + level * 3) * 0.12),
         }))
       ),
-    []
+    [pagesPerStack]
   );
 
   useFrame(() => {
@@ -38,7 +41,7 @@ const DocumentsCluster = ({ anim, active, label, onSelect }) => {
     pages.current.forEach((page, i) => {
       if (!page) return;
       const { y, tilt } = layout[i];
-      const level = i % PAGES_PER_STACK;
+      const level = i % pagesPerStack;
       page.position.y = y + level * spread;
       page.rotation.z = tilt + (chunking ? Math.sin(time * 4 + i) * 0.05 : 0);
     });
@@ -59,7 +62,7 @@ const DocumentsCluster = ({ anim, active, label, onSelect }) => {
           </mesh>
         ))}
       </group>
-      <NodeLabel text={label} active={active} onSelect={onSelect} />
+      <NodeLabel text={label} active={active} compact={compact} onSelect={onSelect} />
     </group>
   );
 };

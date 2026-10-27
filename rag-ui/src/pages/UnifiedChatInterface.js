@@ -3,13 +3,16 @@ import { useParams, useNavigate, useLocation, useSearchParams } from 'react-rout
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { 
-  Container, Box, Typography, TextField, Button, IconButton,
+  Container, Box, Typography, TextField, Button, IconButton, Drawer,
   CircularProgress, Paper, Avatar, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import { 
   Person as PersonIcon,
   SmartToy as BotIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  Forum as ChatsIcon,
+  Add as AddIcon,
+  InfoOutlined as InfoIcon
 } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import { apiService } from '../services/api';
@@ -17,6 +20,7 @@ import WindowContainer from '../components/WindowContainer';
 import Sidebar from '../components/Sidebar';
 import WelcomeScreen from '../components/WelcomeScreen';
 import useLocalizedPath from '../i18n/useLocalizedPath';
+import useViewport from '../hooks/useViewport';
 
 // Matches the "Sources" heading the LLM appends before the bibliography
 const SOURCES_HEADING = /^\s*\**\s*(sources|fuentes)\b/i;
@@ -31,6 +35,7 @@ const UnifiedChatInterface = () => {
   const [searchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const localizedPath = useLocalizedPath();
+  const { isDesktop, isMobile } = useViewport();
   // The browser session is an HttpOnly cookie managed by the backend (see services/api.js)
   
   // Estados para la lista de chats
@@ -222,18 +227,61 @@ const UnifiedChatInterface = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  const renderSidebar = () => (
-    <Sidebar
-      chats={chats}
-      loadingChats={loadingChats}
-      chatId={chatId}
-      collapsed={sidebarCollapsed}
-      onCreateNewChat={handleCreateNewChat}
-      onSelectChat={handleSelectChat}
-      onDeleteChat={handleDeleteChat}
-      onToggleCollapse={toggleSidebar}
-    />
-  );
+  const closeSidebar = () => setSidebarCollapsed(true);
+
+  const renderSidebar = () => {
+    if (isDesktop) {
+      return (
+        <Sidebar
+          chats={chats}
+          loadingChats={loadingChats}
+          chatId={chatId}
+          collapsed={sidebarCollapsed}
+          onCreateNewChat={handleCreateNewChat}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={handleDeleteChat}
+          onToggleCollapse={toggleSidebar}
+        />
+      );
+    }
+
+    // Mobile and tablet: compact toolbar + chat list in a temporary drawer
+    return (
+      <>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+          <IconButton
+            onClick={toggleSidebar}
+            aria-label={t('sidebar.expand')}
+            sx={{ color: '#1e3a8a', bgcolor: 'rgba(30, 58, 138, 0.1)', '&:hover': { bgcolor: 'rgba(30, 58, 138, 0.2)' } }}
+          >
+            <ChatsIcon />
+          </IconButton>
+          <Button
+            onClick={() => handleCreateNewChat()}
+            startIcon={<AddIcon />}
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#917D26', '&:hover': { bgcolor: '#7A6A20' } }}
+          >
+            {t('sidebar.newChat')}
+          </Button>
+        </Box>
+        <Drawer anchor="left" open={!sidebarCollapsed} onClose={closeSidebar}>
+          <Sidebar
+            chats={chats}
+            loadingChats={loadingChats}
+            chatId={chatId}
+            collapsed={false}
+            inDrawer
+            onCreateNewChat={() => { closeSidebar(); handleCreateNewChat(); }}
+            onSelectChat={(id) => { closeSidebar(); handleSelectChat(id); }}
+            onDeleteChat={handleDeleteChat}
+            onToggleCollapse={closeSidebar}
+          />
+        </Drawer>
+      </>
+    );
+  };
 
   const renderWelcomeScreen = () => (
     <WelcomeScreen onStartNewChat={handleStartNewChatFromWelcome} />
@@ -263,7 +311,12 @@ const UnifiedChatInterface = () => {
         sx={{ 
           display: 'flex',
           flexDirection: 'column',
-          height: '70vh',
+          // Phones/tablets: fill the visible viewport below the header and toolbars
+          height: { xs: 'calc(100vh - 15rem)', md: '70vh' },
+          '@supports (height: 100dvh)': {
+            height: { xs: 'calc(100dvh - 15rem)', md: '70vh' }
+          },
+          minHeight: '22rem',
           position: 'relative',
           pl: { xs: 0, md: 3 }
         }}
@@ -275,8 +328,8 @@ const UnifiedChatInterface = () => {
           sx={{ 
             flexGrow: 1, 
             overflowY: 'auto', 
-            mb: 2,
-            p: 3,
+            mb: { xs: 1.5, sm: 2 },
+            p: { xs: 1.5, sm: 3 },
             bgcolor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 3,
             boxShadow: '0 2px 10px rgba(30, 58, 138, 0.1)',
@@ -337,10 +390,11 @@ const UnifiedChatInterface = () => {
                   <Avatar 
                     sx={{ 
                       bgcolor: '#1e3a8a', 
-                      mr: 2, 
+                      mr: { xs: 1, sm: 2 }, 
                       mt: 0.5,
-                      width: 32,
-                      height: 32
+                      width: { xs: 28, sm: 32 },
+                      height: { xs: 28, sm: 32 },
+                      display: { xs: 'none', sm: 'flex' } // phones: give the answer the full width
                     }}
                   >
                     <BotIcon sx={{ fontSize: 18 }} />
@@ -349,16 +403,24 @@ const UnifiedChatInterface = () => {
                 
                 {/* Message */}
                 <Box sx={{ 
-                  maxWidth: '80%',
-                  p: 2.5, 
+                  maxWidth: { xs: msg.is_bot ? '100%' : '85%', sm: '80%' },
+                  minWidth: 0,
+                  p: { xs: 1.5, sm: 2.5 }, 
                   borderRadius: 3,
-                  bgcolor: msg.is_bot ? 'rgba(248, 250, 252, 0.9)' : '#1e3a8a',
+                  bgcolor: msg.out_of_scope ? '#fffbeb' : (msg.is_bot ? 'rgba(248, 250, 252, 0.9)' : '#1e3a8a'),
                   color: msg.is_bot ? 'text.primary' : 'white',
                   boxShadow: msg.is_bot ? '0 2px 8px rgba(30, 58, 138, 0.1)' : '0 2px 8px rgba(30, 58, 138, 0.3)',
                   order: msg.is_bot ? 2 : 1,
-                  border: msg.is_bot ? '1px solid rgba(30, 58, 138, 0.1)' : 'none'
+                  border: msg.out_of_scope ? '1px solid #f59e0b' : (msg.is_bot ? '1px solid rgba(30, 58, 138, 0.1)' : 'none'),
+                  overflowWrap: 'anywhere'
                 }}>
-                  {msg.is_bot ? (
+                  {msg.out_of_scope ? (
+                    // Domain guardrail rejection: already translated by the API
+                    <Box role="note" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <InfoIcon sx={{ color: '#b45309', mt: 0.25 }} />
+                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>{msg.content}</Typography>
+                    </Box>
+                  ) : msg.is_bot ? (
                     <Box>
                       <ReactMarkdown
                         components={{                        h3: ({ children }) => {
@@ -598,10 +660,10 @@ const UnifiedChatInterface = () => {
                   <Avatar 
                     sx={{ 
                       bgcolor: '#757575', 
-                      ml: 2, 
+                      ml: { xs: 1, sm: 2 }, 
                       mt: 0.5,
-                      width: 32,
-                      height: 32,
+                      width: { xs: 28, sm: 32 },
+                      height: { xs: 28, sm: 32 },
                       order: 2
                     }}
                   >
@@ -619,7 +681,7 @@ const UnifiedChatInterface = () => {
           component="form" 
           onSubmit={handleSendMessage}
           sx={{ 
-            p: 2.5,
+            p: { xs: 1, sm: 2.5 },
             mt: 'auto',
             backgroundColor: 'rgba(248, 250, 252, 0.9)',
             borderRadius: 3,
@@ -671,11 +733,11 @@ const UnifiedChatInterface = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
+    <Container maxWidth="xl" disableGutters={isMobile} sx={{ py: { xs: 1, sm: 2 } }}>
       <Helmet><title>{t('seo.chatTitle')}</title></Helmet>
       <WindowContainer>
         {renderSidebar()}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           {error && (
             <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: 2 }}>
               <Typography color="error">

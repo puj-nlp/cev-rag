@@ -35,7 +35,7 @@ const Footer = () => {
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  fontSize: '14px',
+                  fontSize: '0.875rem',
                   fontFamily: '"Inter", sans-serif'
                 }}
               >
@@ -69,7 +69,7 @@ const Footer = () => {
                     src="/logo_javeriana.png"
                     alt="Universidad Javeriana"
                     style={{ 
-                      height: '40px',
+                      height: '2.5rem',
                       filter: 'brightness(0) invert(1)' // Hace el logo blanco
                     }}
                   />
@@ -89,7 +89,7 @@ const Footer = () => {
                     src="/logo_legacy_project.svg"
                     alt="Legacy Project Notre Dame"
                     style={{ 
-                      height: '40px',
+                      height: '2.5rem',
                       filter: 'brightness(0) invert(1)' // Hace el logo blanco
                     }}
                   />
@@ -109,7 +109,7 @@ const Footer = () => {
                     src="/logo_lucy.svg"
                     alt="Lucy Institute Notre Dame"
                     style={{ 
-                      height: '40px',
+                      height: '2.5rem',
                       filter: 'brightness(0) invert(1)' // Hace el logo blanco
                     }}
                   />
@@ -129,7 +129,7 @@ const Footer = () => {
                     src="/logo_ethics.svg"
                     alt="Notre Dame IBM Technology Ethics Lab"
                     style={{ 
-                      height: '40px',
+                      height: '2.5rem',
                       filter: 'brightness(0) invert(1)' // Hace el logo blanco
                     }}
                   />

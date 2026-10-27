@@ -10,6 +10,10 @@ import './index.css';
 
 // Create a custom theme for Window to Truth
 const theme = createTheme({
+  // Mobile-first breakpoints: mobile < 640px, tablet 640-1023px, desktop >= 1024px
+  breakpoints: {
+    values: { xs: 0, sm: 640, md: 1024, lg: 1280, xl: 1536 },
+  },
   palette: {
     primary: {
       main: '#111827', // Color oscuro para la barra superior

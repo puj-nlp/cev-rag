@@ -9,26 +9,23 @@ import {
   ChevronRight as ChevronRightIcon 
 } from '@mui/icons-material';
 
-const SidebarRoot = styled(Box)(({ theme, collapsed }) => ({
+const SidebarRoot = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'collapsed' && prop !== 'inDrawer'
+})(({ theme, collapsed, inDrawer }) => ({
   background: 'rgba(248, 250, 252, 0.95)',
   borderRight: '1px solid #e2e8f0',
   backdropFilter: 'blur(10px)',
-  width: collapsed ? '60px' : '300px',
+  // Desktop: collapsible column. Mobile/tablet: full-height panel inside a Drawer
+  width: inDrawer ? '18.75rem' : (collapsed ? '3.75rem' : '18.75rem'),
+  maxWidth: inDrawer ? '85vw' : 'none',
+  height: inDrawer ? '100%' : 'auto',
+  flexShrink: 0,
   padding: theme.spacing(2.5),
-  borderRadius: '8px 0 0 8px',
+  borderRadius: inDrawer ? 0 : '8px 0 0 8px',
   transition: 'width 0.3s ease',
   overflow: 'hidden',
-  [theme.breakpoints.down('md')]: {
-    width: collapsed ? '0px' : '100%',
-    padding: collapsed ? 0 : theme.spacing(2.5),
-    borderRight: 'none',
-    borderBottom: collapsed ? 'none' : '1px solid #e2e8f0',
-    borderRadius: collapsed ? '0' : '8px 8px 0 0',
-    marginBottom: collapsed ? 0 : theme.spacing(2),
-    position: collapsed ? 'absolute' : 'relative',
-    left: collapsed ? '-100%' : '0',
-    zIndex: collapsed ? -1 : 1
-  }
+  display: inDrawer ? 'flex' : 'block',
+  flexDirection: 'column'
 }));
 
 const SidebarTitle = styled(Typography)(({ theme }) => ({
@@ -85,10 +82,13 @@ const ChatItem = styled(Box)(({ theme, isActive }) => ({
   }
 }));
 
-const ChatListContainer = styled(Box)(({ theme }) => ({
+const ChatListContainer = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'inDrawer'
+})(({ theme, inDrawer }) => ({
   marginTop: theme.spacing(2),
   overflowY: 'auto',
-  maxHeight: '50vh',
+  maxHeight: inDrawer ? 'none' : '50vh',
+  flex: inDrawer ? 1 : 'none',
   '&::-webkit-scrollbar': {
     width: '6px'
   },
@@ -110,6 +110,7 @@ const Sidebar = ({
   loadingChats, 
   chatId, 
   collapsed,
+  inDrawer = false,
   onCreateNewChat, 
   onSelectChat, 
   onDeleteChat,
@@ -128,7 +129,7 @@ const Sidebar = ({
   };
 
   return (
-    <SidebarRoot collapsed={collapsed}>
+    <SidebarRoot collapsed={collapsed} inDrawer={inDrawer}>
       {/* Collapse/Expand button */}
       <Box sx={{ 
         display: 'flex', 
@@ -166,7 +167,7 @@ const Sidebar = ({
             {t('sidebar.newChat')}
           </NewChatButton>
           
-          <ChatListContainer>
+          <ChatListContainer inDrawer={inDrawer}>
             {loadingChats ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                 <CircularProgress size={24} sx={{ color: '#1e3a8a' }} />
@@ -188,7 +189,7 @@ const Sidebar = ({
                         variant="body2" 
                         noWrap 
                         sx={{ 
-                          maxWidth: 180,
+                          maxWidth: '100%',
                           fontWeight: chatId === chat.id.toString() ? 600 : 400,
                           color: chatId === chat.id.toString() ? '#1e3a8a' : '#374151'
                         }}

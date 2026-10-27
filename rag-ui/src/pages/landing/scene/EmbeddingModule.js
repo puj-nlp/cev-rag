@@ -6,7 +6,7 @@ import NodeLabel from './NodeLabel';
 import useHoverCursor from './useHoverCursor';
 
 /** Transformer block: text fragments go in, high-dimensional vectors come out. */
-const EmbeddingModule = ({ anim, active, label, onSelect }) => {
+const EmbeddingModule = ({ anim, active, label, onSelect, lite, compact }) => {
   const shell = useRef();
   const core = useRef();
   const { hovered, bind } = useHoverCursor();
@@ -28,7 +28,7 @@ const EmbeddingModule = ({ anim, active, label, onSelect }) => {
     <group position={NODES.embedding.position}>
       <group onClick={onSelect} {...bind} scale={hovered ? 1.08 : 1}>
         <mesh ref={shell}>
-          <icosahedronGeometry args={[1.1, 1]} />
+          <icosahedronGeometry args={[1.1, lite ? 0 : 1]} />
           <meshBasicMaterial color={COLORS.gold} wireframe transparent opacity={active || hovered ? 0.9 : 0.45} />
         </mesh>
         <mesh ref={core}>
@@ -42,7 +42,7 @@ const EmbeddingModule = ({ anim, active, label, onSelect }) => {
           />
         </mesh>
       </group>
-      <NodeLabel text={label} active={active} onSelect={onSelect} />
+      <NodeLabel text={label} active={active} compact={compact} onSelect={onSelect} />
     </group>
   );
 };

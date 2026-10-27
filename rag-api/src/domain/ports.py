@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from .entities import ChatSession, Message, Document, Question, ChatResponse, RAGContext
+from .entities import ChatSession, Message, Document, Question, ChatResponse, RAGContext, ScopeDecision
 
 
 class ChatSessionRepository(ABC):
@@ -99,4 +99,18 @@ class TimestampService(ABC):
     @abstractmethod
     def get_current_timestamp(self) -> str:
         """Get current timestamp as ISO string."""
+        pass
+
+
+class QueryGuardrail(ABC):
+    """Port for deciding whether a question belongs to the project's domain."""
+
+    @abstractmethod
+    async def evaluate(
+        self,
+        question: str,
+        chat_history: List[Dict[str, Any]],
+        language: str = "es"
+    ) -> ScopeDecision:
+        """Evaluate a question before retrieval and generation."""
         pass

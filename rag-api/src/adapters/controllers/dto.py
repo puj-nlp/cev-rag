@@ -22,6 +22,7 @@ class MessageDTO(BaseModel):
     is_bot: bool = False
     timestamp: Optional[str] = None
     references: Optional[List[Dict[str, Any]]] = None
+    out_of_scope: bool = False
 
 
 class ChatSessionDTO(BaseModel):
