@@ -13,6 +13,5 @@ monolith_old
 certs/
 node_modules/
 rag-ui/build/
-rag-ui/package-lock.json
 rag-ui/public/sitemap.xml
 rag-ui/public/robots.txt
